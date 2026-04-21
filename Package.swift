@@ -16,6 +16,10 @@ let package = Package(
       name: "MXLightkeeperApp",
       targets: ["MXLightkeeperApp"]
     ),
+    .executable(
+      name: "mxlightkeeper",
+      targets: ["mxlightkeeper"]
+    ),
   ],
   targets: [
     .target(
@@ -23,6 +27,10 @@ let package = Package(
     ),
     .executableTarget(
       name: "MXLightkeeperApp",
+      dependencies: ["MXLightkeeperCore"]
+    ),
+    .executableTarget(
+      name: "mxlightkeeper",
       dependencies: ["MXLightkeeperCore"]
     ),
     .testTarget(
