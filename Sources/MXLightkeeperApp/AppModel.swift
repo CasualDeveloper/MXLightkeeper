@@ -18,7 +18,7 @@ final class AppModel {
   }
 
   private let userDefaults: UserDefaults
-  private let receiverService: ReceiverEnumerating & ReceiverWriting
+  private let controller: MXLightkeeperController
   private let logger = Logger(subsystem: "MXLightkeeper", category: "AppModel")
   private let settingsEncoder = JSONEncoder()
   private var backlightKeeper: BacklightKeeper?
@@ -41,10 +41,10 @@ final class AppModel {
 
   init(
     userDefaults: UserDefaults = .standard,
-    receiverService: some ReceiverEnumerating & ReceiverWriting = HIDReceiverService()
+    controller: MXLightkeeperController = MXLightkeeperController()
   ) {
     self.userDefaults = userDefaults
-    self.receiverService = receiverService
+    self.controller = controller
 
     let settings = Self.loadSettings(from: userDefaults)
     isEnabled = settings.isEnabled
@@ -62,8 +62,7 @@ final class AppModel {
         if let self {
           self.refreshReceivers()
           if self.activeMatch != nil {
-            self.discoverKeyboardName()
-            self.discoverBatteryStatus()
+            self.refreshDeviceDetails()
           }
         }
         try? await Task.sleep(nanoseconds: Self.devicePollIntervalNanoseconds)
@@ -210,7 +209,7 @@ final class AppModel {
 
   func refreshReceivers() {
     do {
-      availableReceivers = try receiverService.listReceivers()
+      availableReceivers = try controller.listReceivers()
       if let firstMatch = availableReceivers.first {
         markReceiverActive(firstMatch)
         if isEnabled {
@@ -220,6 +219,7 @@ final class AppModel {
         markReceiverMissing()
       }
     } catch {
+      stopKeeperIfNeeded()
       availableReceivers = []
       activeReceiver = nil
       activeMatch = nil
@@ -238,18 +238,18 @@ final class AppModel {
       return
     }
 
+    if backlightKeeper?.receiverSnapshot != activeReceiver {
+      stopKeeperIfNeeded()
+    }
+
     if backlightKeeper?.isRunning == true {
       return
     }
 
     do {
-      let target = try HIDReceiverService.firstMatchedDevice()
-      guard target.match.snapshot == activeReceiver else {
-        return
-      }
-
-      backlightKeeper = try BacklightKeeper(target: target)
-      backlightKeeper?.start()
+      let keeper = try controller.makeKeeper(matching: activeReceiver)
+      try keeper.start()
+      backlightKeeper = keeper
       status = .active
       lastErrorMessage = nil
       logger.info("Backlight keeper started")
@@ -319,15 +319,13 @@ final class AppModel {
       return
     }
 
-    let receiverService = receiverService
-
     isRunningDebugAction = true
     lastErrorMessage = nil
 
     Task {
       do {
         for step in steps {
-          try receiverService.sendOutputReport(
+          try controller.sendRawOutputReport(
             step.payload,
             to: activeReceiver
           )
@@ -355,6 +353,7 @@ final class AppModel {
   #endif
 
   func markReceiverMissing() {
+    stopKeeperIfNeeded()
     activeReceiver = nil
     activeMatch = nil
     keyboardName = nil
@@ -365,6 +364,12 @@ final class AppModel {
   }
 
   func markReceiverActive(_ match: HIDReceiverMatch) {
+    if activeReceiver != match.snapshot {
+      keyboardName = nil
+      batteryStatus = nil
+      batteryLastUpdatedAt = nil
+    }
+
     activeReceiver = match.snapshot
     activeMatch = match
     lastErrorMessage = nil
@@ -372,112 +377,22 @@ final class AppModel {
     status = AppStatusReducer.reduce(from: status, event: .receiverAcquired)
   }
 
-  private func discoverBatteryStatus() {
+  private func refreshDeviceDetails() {
     do {
-      let target = try HIDReceiverService.firstMatchedDevice()
-      let session = try HIDPPProbeSession(target: target)
-      defer { session.close() }
+      let details = try controller.readDeviceDetails(matching: activeReceiver)
+      keyboardName = details.keyboardName
+      batteryStatus = details.batteryStatus
+      batteryLastUpdatedAt = details.batteryStatus == nil ? nil : Date()
 
-      let rootRequest = HIDPPReport(
-        reportID: HIDPPReport.shortReportID,
-        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
-        featureIndex: 0x00,
-        functionID: 0x00,
-        softwareID: HIDPPSoftwareID.mxLightkeeper,
-        parameters: [0x10, 0x00, 0x00]
-      )
-      let rootResponse = try session.sendRequest(rootRequest, timeout: 1.0)
-      let batteryFeatureIndex = rootResponse.parameters.first ?? 0
-      guard batteryFeatureIndex != 0 else {
-        return
+      if let keyboardName = details.keyboardName {
+        logger.info("Discovered keyboard name: \(keyboardName, privacy: .public)")
       }
 
-      let statusRequest = HIDPPReport(
-        reportID: HIDPPReport.shortReportID,
-        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
-        featureIndex: batteryFeatureIndex,
-        functionID: 0x00,
-        softwareID: HIDPPSoftwareID.mxLightkeeper,
-        parameters: [0x00, 0x00, 0x00]
-      )
-      let response = try session.sendRequest(statusRequest, timeout: 1.0)
-      guard response.parameters.count >= 3 else { return }
-
-      let status = BatteryStatus(
-        dischargeLevel: response.parameters[0],
-        nextLevel: response.parameters[1],
-        powerStatus: BatteryPowerStatus.fromByte(response.parameters[2])
-      )
-
-      batteryStatus = status
-      batteryLastUpdatedAt = Date()
-      logger.info("Battery: \(status.dischargeLevel, privacy: .public)%, status=\(status.powerStatus.rawValue, privacy: .public)")
+      if let batteryStatus = details.batteryStatus {
+        logger.info("Battery: \(batteryStatus.dischargeLevel, privacy: .public)%, status=\(batteryStatus.powerStatus.rawValue, privacy: .public)")
+      }
     } catch {
-      logger.error("Battery status discovery failed: \(error.localizedDescription, privacy: .public)")
-    }
-  }
-
-  private func discoverKeyboardName() {
-    do {
-      let target = try HIDReceiverService.firstMatchedDevice()
-      let session = try HIDPPProbeSession(target: target)
-      defer { session.close() }
-
-      let rootRequest = HIDPPReport(
-        reportID: HIDPPReport.shortReportID,
-        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
-        featureIndex: 0x00,
-        functionID: 0x00,
-        softwareID: HIDPPSoftwareID.mxLightkeeper,
-        parameters: [0x00, 0x05, 0x00]
-      )
-      let rootResponse = try session.sendRequest(rootRequest, timeout: 1.0)
-      let deviceNameFeatureIndex = rootResponse.parameters.first ?? 0
-      guard deviceNameFeatureIndex != 0 else {
-        return
-      }
-
-      let countRequest = HIDPPReport(
-        reportID: HIDPPReport.shortReportID,
-        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
-        featureIndex: deviceNameFeatureIndex,
-        functionID: 0x00,
-        softwareID: HIDPPSoftwareID.mxLightkeeper,
-        parameters: [0x00, 0x00, 0x00]
-      )
-      let countResponse = try session.sendRequest(countRequest, timeout: 1.0)
-      let count = Int(countResponse.parameters.first ?? 0)
-      guard count > 0, count < 64 else {
-        return
-      }
-
-      var bytes: [UInt8] = []
-      var offset = 0
-      while offset < count {
-        let nameRequest = HIDPPReport(
-          reportID: HIDPPReport.shortReportID,
-          deviceIndex: HIDPPDeviceIndex.receiverSlot1,
-          featureIndex: deviceNameFeatureIndex,
-          functionID: 0x01,
-          softwareID: HIDPPSoftwareID.mxLightkeeper,
-          parameters: [UInt8(offset), 0x00, 0x00]
-        )
-        let nameResponse = try session.sendRequest(nameRequest, timeout: 1.0)
-        let remaining = count - offset
-        let chunk = Array(nameResponse.parameters.prefix(remaining))
-        guard !chunk.isEmpty else { break }
-        bytes.append(contentsOf: chunk)
-        offset += chunk.count
-      }
-
-      let name = String(decoding: bytes, as: UTF8.self)
-        .trimmingCharacters(in: .controlCharacters)
-      guard !name.isEmpty else { return }
-
-      keyboardName = name
-      logger.info("Discovered keyboard name: \(name, privacy: .public)")
-    } catch {
-      logger.error("Keyboard name discovery failed: \(error.localizedDescription, privacy: .public)")
+      logger.error("Device details refresh failed: \(error.localizedDescription, privacy: .public)")
     }
   }
 

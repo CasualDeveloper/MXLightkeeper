@@ -26,7 +26,7 @@ Open it from `/Applications`, toggle **Keep backlight on**, and optionally enabl
 
 ## Terminal tool
 
-`mxlightkeeper` is a companion CLI for scripting or one-off control:
+`mxlightkeeper` is a companion CLI for scripting or one-off control. The menu bar app and CLI both call the same `MXLightkeeperCore` engine rather than maintaining separate HID implementations.
 
 ```bash
 swift build -c release --product mxlightkeeper
@@ -39,6 +39,8 @@ mxlightkeeper manual --level 7     # set manual brightness 1-7
 mxlightkeeper keep                 # run keep-alive loop until Ctrl-C
 ```
 
+Only one MXLightkeeper process can own the long-running keep-alive loop at a time. If the menu bar app or another CLI process is already keeping the backlight alive, `mxlightkeeper keep` refuses to start instead of clashing.
+
 ## Requirements
 
 - macOS 26+
@@ -49,17 +51,17 @@ Only "MX Keys for Mac" on Unifying has been end-to-end verified. Other MX Keys v
 
 ## How it works
 
-The matched Logitech receiver exposes a vendor-specific HID interface on usage page `0xFF00`. A HID++ `getFeatureID` request resolves feature `BACKLIGHT2 (0x1982)` to feature index `0x0b` on the reference MX Keys for Mac setup. The keep-alive loop writes the structured `BACKLIGHT2` state (`enabled = 1`, preserving the user's brightness level and mode) every 180 seconds.
+The matched Logitech receiver exposes a vendor-specific HID interface on usage page `0xFF00`. A HID++ `getFeatureID` request resolves feature `BACKLIGHT2 (0x1982)` to feature index `0x0b` on the reference MX Keys for Mac setup. Both frontends call the same shared core controller, and the keep-alive loop writes the structured `BACKLIGHT2` state (`enabled = 1`, preserving the user's brightness level and mode) every 180 seconds.
 
-In parallel, every 60 seconds a background poll re-reads `DEVICE_NAME (0x0005)` and `BATTERY_STATUS (0x1000)` from the keyboard to surface the model name and charge / charging state in the menu, and re-enumerates the receiver so unplug / replug is noticed automatically. The poll runs regardless of whether the keep-alive toggle is on.
+In parallel, every 60 seconds a background poll re-reads `DEVICE_NAME (0x0005)` and `BATTERY_STATUS (0x1000)` from the keyboard to surface the model name and charge / charging state in the menu, and re-enumerates the receiver so unplug / replug is noticed automatically. The poll runs regardless of whether the keep-alive toggle is on. Long-running keep-alive ownership is exclusive, so the app and CLI do not both try to refresh the receiver at once.
 
 See [`docs/reverse-engineering.md`](docs/reverse-engineering.md) for protocol details and how the feature indexes were discovered.
 
 ## Layout
 
-- `Sources/MXLightkeeperCore/` — receiver matching, HID++ types, `BACKLIGHT2` codec, keep-alive loop
-- `Sources/MXLightkeeperApp/` — SwiftUI menu bar app
-- `Sources/mxlightkeeper/` — terminal tool
+- `Sources/MXLightkeeperCore/` — receiver matching, HID++ types, `BACKLIGHT2` codec, shared controller, exclusive keep-alive loop
+- `Sources/MXLightkeeperApp/` — SwiftUI menu bar frontend
+- `Sources/mxlightkeeper/` — terminal frontend over the shared core
 - `Tests/MXLightkeeperCoreTests/` — unit tests for the core module
 - `Packaging/` — `Info.plist` and pre-rendered `AppIcon.icns`
 - `scripts/build-app.sh` — builds and signs the `.app` bundle
@@ -76,7 +78,7 @@ xattr -dr com.apple.quarantine /Applications/MXLightkeeper.app
 
 **Login items.** Enabling "Launch at login" shows a standard macOS notification and adds MXLightkeeper to **System Settings → General → Login Items**.
 
-**Terminal tool.** All `mxlightkeeper` subcommands operate on the receiver's vendor-specific HID interface (usage page `0xFF00`), which macOS does not classify as keyboard input. No TCC prompts are expected.
+**Terminal tool.** All `mxlightkeeper` subcommands use the same shared core and operate on the receiver's vendor-specific HID interface (usage page `0xFF00`), which macOS does not classify as keyboard input. No TCC prompts are expected. `mxlightkeeper keep` also respects the single-owner keep-alive guard and refuses to start if another MXLightkeeper process already owns the loop.
 
 ## License
 

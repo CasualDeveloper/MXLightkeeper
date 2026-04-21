@@ -102,15 +102,17 @@ Breakdown: `on/off | options | 0xFF | level | durations[6 × 2 bytes LE]`. The l
 
 Only "MX Keys for Mac" has been end-to-end verified on real hardware. Other keyboards ("MX Keys", "MX Keys Mini", "MX Keys S", "MX Keys S Combo") use the same code path but are flagged in the UI as "(alpha)" until confirmed.
 
-## What the shipping app uses
+## What the shipping app and CLI use
 
-Writing `BACKLIGHT2.enabled = 0x00` or `0x01` through the structured `BACKLIGHT2` write flips the real keyboard backlight state immediately on the MX Keys target of this port. The keep-alive loop re-sends the `enabled = 1` struct every 180 seconds while preserving the user's existing brightness level and mode.
+Writing `BACKLIGHT2.enabled = 0x00` or `0x01` through the structured `BACKLIGHT2` write flips the real keyboard backlight state immediately on the MX Keys target of this port. Both frontends call the same `MXLightkeeperCore` controller, and the keep-alive loop re-sends the `enabled = 1` struct every 180 seconds while preserving the user's existing brightness level and mode.
+
+Only one process is allowed to own the long-running keep-alive loop at a time. `BacklightKeeper` creates a lock file under the user's Application Support directory and refuses to start if another MXLightkeeper process already owns that lock.
 
 Replaying the legacy Backlighter raw pulse (`10 01 0b 1f 00 00 ff` then `10 01 0b 1f 01 00 ff`) does not visibly change the light when the keyboard is already on. It behaves like a transient nudge, not a real setter.
 
 ## Bolt note
 
-A community report (Reddit) claimed the Windows matcher also worked for Bolt after changing `productId` to `0xc548`, keeping `vendorId 0x046d`, and using usage page `65280`. This is treated as a research lead, not proof. The `mxlightkeeper` CLI and menu bar app include a `--bolt` / experimental toggle for that matcher, but it is disabled by default until verified on real Bolt hardware.
+A community report (Reddit) claimed the Windows matcher also worked for Bolt after changing `productId` to `0xc548`, keeping `vendorId 0x046d`, and using usage page `65280`. This is still treated as a research lead, not proof. The shipping matcher is enabled in both frontends now, but Bolt receivers remain labeled `(alpha)` until verified on real hardware.
 
 ## Other exposed features
 

@@ -86,6 +86,21 @@ public enum Backlight2Codec {
   public static let readFunctionID: UInt8 = 0x00
   public static let writeFunctionID: UInt8 = 0x01
 
+  static func keepAliveRequest(from state: Backlight2State) -> HIDPPReport {
+    writeRequest(
+      from: Backlight2State(
+        enabled: 0x01,
+        options: state.options,
+        supported: state.supported,
+        effects: state.effects,
+        level: max(state.level, UInt8(1)),
+        durationHandsOut: state.durationHandsOut,
+        durationHandsIn: state.durationHandsIn,
+        durationPowered: state.durationPowered
+      )
+    )
+  }
+
   public static func decodeState(from report: HIDPPReport) -> Backlight2State? {
     guard report.featureIndex == featureIndex, report.functionID == readFunctionID else {
       return nil
