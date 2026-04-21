@@ -112,9 +112,6 @@ final class AppModel {
       refreshReceivers()
     } else {
       stopKeeperIfNeeded()
-      activeReceiver = nil
-      activeMatch = nil
-      availableReceivers = []
       lastErrorMessage = nil
       retryAttempt = 0
     }
@@ -148,9 +145,11 @@ final class AppModel {
   func refreshReceivers() {
     do {
       availableReceivers = try receiverService.listReceivers(includeExperimentalBolt: experimentalBoltEnabled)
-      if let firstMatch = availableReceivers.first, isEnabled {
+      if let firstMatch = availableReceivers.first {
         markReceiverActive(firstMatch)
-        startKeeperIfPossible()
+        if isEnabled {
+          startKeeperIfPossible()
+        }
       } else {
         markReceiverMissing()
       }
