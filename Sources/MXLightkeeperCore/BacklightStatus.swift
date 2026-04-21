@@ -26,15 +26,17 @@ public enum BacklightStatusDecoder {
   public static let statusQuery = Data([0x10, 0x01, 0x0b, 0x1f, 0x01, 0x00, 0xff])
 
   public static func decode(from report: Data) -> BacklightStatus? {
-    guard report.count >= 7 else {
+    let expectedCount = 7
+    guard report.count >= expectedCount else {
       return nil
     }
 
-    guard report[0] == 0x11, report[1] == 0x01, report[2] == 0x0b else {
+    let header = (report[0], report[1], report[2], report[4])
+    guard header.0 == 0x11, header.1 == 0x01, header.2 == 0x0b else {
       return nil
     }
 
-    guard report[4] == 0x08 else {
+    guard header.3 == 0x08 else {
       return nil
     }
 
@@ -106,21 +108,22 @@ public enum Backlight2Codec {
       return nil
     }
 
-    guard report.parameters.count >= 12 else {
+    let parameters = report.parameters
+    guard parameters.count >= 12 else {
       return nil
     }
 
-    let effects = UInt16(report.parameters[3]) | (UInt16(report.parameters[4]) << 8)
-    let dho = UInt16(report.parameters[6]) | (UInt16(report.parameters[7]) << 8)
-    let dhi = UInt16(report.parameters[8]) | (UInt16(report.parameters[9]) << 8)
-    let dpow = UInt16(report.parameters[10]) | (UInt16(report.parameters[11]) << 8)
+    let effects = UInt16(parameters[3]) | (UInt16(parameters[4]) << 8)
+    let dho = UInt16(parameters[6]) | (UInt16(parameters[7]) << 8)
+    let dhi = UInt16(parameters[8]) | (UInt16(parameters[9]) << 8)
+    let dpow = UInt16(parameters[10]) | (UInt16(parameters[11]) << 8)
 
     return Backlight2State(
-      enabled: report.parameters[0],
-      options: report.parameters[1],
-      supported: report.parameters[2],
+      enabled: parameters[0],
+      options: parameters[1],
+      supported: parameters[2],
       effects: effects,
-      level: report.parameters[5],
+      level: parameters[5],
       durationHandsOut: dho,
       durationHandsIn: dhi,
       durationPowered: dpow

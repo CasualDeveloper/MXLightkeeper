@@ -5,6 +5,12 @@ import SwiftUI
 struct MenuBarContentView: View {
   let model: AppModel
 
+  private static let batteryDateFormatter: RelativeDateTimeFormatter = {
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return formatter
+  }()
+
   #if DEBUG
   @State private var isShowingDebugActions = false
   #endif
@@ -191,9 +197,7 @@ struct MenuBarContentView: View {
 
   private var batteryRefreshTooltip: String {
     guard let date = model.batteryLastUpdatedAt else { return "Battery status" }
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-    return "Updated \(formatter.localizedString(for: date, relativeTo: Date()))"
+    return "Updated \(Self.batteryDateFormatter.localizedString(for: date, relativeTo: Date()))"
   }
 
   #if DEBUG

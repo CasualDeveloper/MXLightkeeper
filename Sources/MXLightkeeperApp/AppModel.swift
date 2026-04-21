@@ -17,6 +17,8 @@ final class AppModel {
     static let settings = "mxlightkeeper.settings"
   }
 
+  private static let verifiedKeyboards: Set<String> = ["MX Keys for Mac"]
+
   private let userDefaults: UserDefaults
   private let controller: MXLightkeeperController
   private let logger = Logger(subsystem: "MXLightkeeper", category: "AppModel")
@@ -52,6 +54,9 @@ final class AppModel {
     status = settings.isEnabled ? .waiting : .disabled
 
     refreshReceivers()
+    if activeMatch != nil {
+      refreshDeviceDetails()
+    }
     startDevicePolling()
   }
 
@@ -59,13 +64,18 @@ final class AppModel {
     devicePollTask?.cancel()
     devicePollTask = Task { @MainActor [weak self] in
       while !Task.isCancelled {
+        do {
+          try await Task.sleep(nanoseconds: Self.devicePollIntervalNanoseconds)
+        } catch {
+          break
+        }
+
         if let self {
           self.refreshReceivers()
           if self.activeMatch != nil {
             self.refreshDeviceDetails()
           }
         }
-        try? await Task.sleep(nanoseconds: Self.devicePollIntervalNanoseconds)
       }
     }
   }
@@ -89,8 +99,7 @@ final class AppModel {
     // Everything else — MX Keys S, MX Keys Mini, original MX Keys, etc. —
     // runs against an unverified code path even though the HID++ BACKLIGHT2
     // protocol family should cover them. Flag them as alpha until confirmed.
-    let verified: Set<String> = ["MX Keys for Mac"]
-    return !verified.contains(name)
+    !Self.verifiedKeyboards.contains(name)
   }
 
   var receiverLabel: String {
@@ -247,9 +256,9 @@ final class AppModel {
     }
 
     do {
-      let keeper = try controller.makeKeeper(matching: activeReceiver)
-      try keeper.start()
-      backlightKeeper = keeper
+      let runtimeState = try controller.prepareRuntimeState(matching: activeReceiver)
+      try runtimeState.keeper.start()
+      backlightKeeper = runtimeState.keeper
       status = .active
       lastErrorMessage = nil
       logger.info("Backlight keeper started")
@@ -380,17 +389,27 @@ final class AppModel {
   private func refreshDeviceDetails() {
     do {
       let details = try controller.readDeviceDetails(matching: activeReceiver)
-      keyboardName = details.keyboardName
-      batteryStatus = details.batteryStatus
-      batteryLastUpdatedAt = details.batteryStatus == nil ? nil : Date()
+      let previousKeyboardName = keyboardName
+      let previousBatteryStatus = batteryStatus
+      let refreshedAt = details.batteryStatus == nil ? nil : Date()
 
-      if let keyboardName = details.keyboardName {
-        logger.info("Discovered keyboard name: \(keyboardName, privacy: .public)")
+      if previousKeyboardName != details.keyboardName {
+        keyboardName = details.keyboardName
+
+        if let keyboardName = details.keyboardName {
+          logger.info("Discovered keyboard name: \(keyboardName, privacy: .public)")
+        }
       }
 
-      if let batteryStatus = details.batteryStatus {
-        logger.info("Battery: \(batteryStatus.dischargeLevel, privacy: .public)%, status=\(batteryStatus.powerStatus.rawValue, privacy: .public)")
+      if previousBatteryStatus != details.batteryStatus {
+        batteryStatus = details.batteryStatus
+
+        if let batteryStatus = details.batteryStatus {
+          logger.info("Battery: \(batteryStatus.dischargeLevel, privacy: .public)%, status=\(batteryStatus.powerStatus.rawValue, privacy: .public)")
+        }
       }
+
+      batteryLastUpdatedAt = refreshedAt
     } catch {
       logger.error("Device details refresh failed: \(error.localizedDescription, privacy: .public)")
     }

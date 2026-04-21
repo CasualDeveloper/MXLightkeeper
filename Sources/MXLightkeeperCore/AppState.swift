@@ -56,17 +56,19 @@ public enum AppEvent: Sendable, Equatable {
 
 public enum AppStatusReducer {
   public static func reduce(from current: AppStatus, event: AppEvent) -> AppStatus {
+    let isDisabled = current == .disabled
+
     switch event {
     case .setEnabled(false):
       return .disabled
     case .setEnabled(true):
       return .waiting
     case .receiverMissing:
-      return current == .disabled ? .disabled : .waiting
+      return isDisabled ? .disabled : .waiting
     case .receiverAcquired, .recovered:
-      return current == .disabled ? .disabled : .active
+      return isDisabled ? .disabled : .active
     case .writeFailed:
-      return current == .disabled ? .disabled : .degraded
+      return isDisabled ? .disabled : .degraded
     }
   }
 }

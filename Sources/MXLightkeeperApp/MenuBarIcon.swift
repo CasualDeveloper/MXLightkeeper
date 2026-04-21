@@ -14,7 +14,12 @@ struct MenuBarIcon: View {
   }
 
   private var tint: Color {
-    status == .degraded ? .orange : .primary
+    switch status {
+    case .degraded:
+      return .orange
+    case .active, .waiting, .disabled:
+      return .primary
+    }
   }
 
   private var accessibilityDescription: String {

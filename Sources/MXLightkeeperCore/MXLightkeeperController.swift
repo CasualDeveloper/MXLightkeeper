@@ -27,6 +27,16 @@ public struct MXLightkeeperDeviceDetails: Equatable, Sendable {
   }
 }
 
+public struct MXLightkeeperRuntimeState: Sendable {
+  public let receiver: HIDReceiverMatch
+  public let keeper: BacklightKeeper
+
+  public init(receiver: HIDReceiverMatch, keeper: BacklightKeeper) {
+    self.receiver = receiver
+    self.keeper = keeper
+  }
+}
+
 @MainActor
 public struct MXLightkeeperController: Sendable {
   private let probeTimeoutSeconds: TimeInterval
@@ -55,6 +65,22 @@ public struct MXLightkeeperController: Sendable {
         try self.refreshKeepAlive(matching: snapshot)
       }
     )
+  }
+
+  public func prepareRuntimeState(
+    matching snapshot: ReceiverSnapshot? = nil,
+    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds)
+  ) throws -> MXLightkeeperRuntimeState {
+    let target = try resolveTarget(matching: snapshot)
+    let keeper = BacklightKeeper(
+      snapshot: target.match.snapshot,
+      refreshIntervalSeconds: refreshIntervalSeconds,
+      refreshOperation: { keeperSnapshot in
+        try self.refreshKeepAlive(matching: keeperSnapshot)
+      }
+    )
+
+    return MXLightkeeperRuntimeState(receiver: target.match, keeper: keeper)
   }
 
   public func readBacklightState(matching snapshot: ReceiverSnapshot? = nil) throws -> Backlight2State {
@@ -136,7 +162,7 @@ public struct MXLightkeeperController: Sendable {
 
   private func resolveTarget(matching snapshot: ReceiverSnapshot?) throws -> HIDReceiverTarget {
     let target = try HIDReceiverService.firstMatchedDevice()
-    guard snapshot == nil || target.match.snapshot == snapshot else {
+    if let snapshot, target.match.snapshot != snapshot {
       throw MXLightkeeperControllerError.receiverChanged
     }
     return target
@@ -224,9 +250,9 @@ public struct MXLightkeeperController: Sendable {
       offset += chunk.count
     }
 
-    let name = String(decoding: bytes, as: UTF8.self)
-      .trimmingCharacters(in: .controlCharacters)
-    return name.isEmpty ? nil : name
+    let decodedName = String(decoding: bytes, as: UTF8.self)
+    let trimmedName = decodedName.trimmingCharacters(in: .controlCharacters)
+    return trimmedName.isEmpty ? nil : trimmedName
   }
 
   private func readBatteryStatus(with session: HIDPPProbeSession) throws -> BatteryStatus? {

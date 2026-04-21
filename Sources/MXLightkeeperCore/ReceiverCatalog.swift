@@ -90,10 +90,10 @@ public struct ReceiverMatcher: Sendable, Equatable {
   }
 
   public func matches(_ snapshot: ReceiverSnapshot) -> Bool {
-    snapshot.vendorID == vendorID &&
-      snapshot.productID == productID &&
-      snapshot.usagePage == usagePage &&
-      snapshot.usage == usage
+    if snapshot.vendorID != vendorID { return false }
+    if snapshot.productID != productID { return false }
+    if snapshot.usagePage != usagePage { return false }
+    return snapshot.usage == usage
   }
 }
 

@@ -58,19 +58,18 @@ func fail(_ message: String, code: Int32 = 1) -> Never {
 
 @MainActor
 func runKeepCommand(with controller: MXLightkeeperController) throws {
-  let receiver = try controller.firstMatchedReceiver()
-  let keeper = try controller.makeKeeper()
-  try keeper.start()
+  let runtimeState = try controller.prepareRuntimeState()
+  try runtimeState.keeper.start()
 
-  let alphaSuffix = receiver.matcher.experimental ? " (alpha)" : ""
-  print("Keeping backlight on via \(receiver.matcher.kind.displayName) receiver\(alphaSuffix).")
+  let alphaSuffix = runtimeState.receiver.matcher.experimental ? " (alpha)" : ""
+  print("Keeping backlight on via \(runtimeState.receiver.matcher.kind.displayName) receiver\(alphaSuffix).")
   print("Writing keep-alive every \(KeepAliveProtocol.keepAliveIntervalSeconds)s. Press Ctrl-C to stop.")
 
   signal(SIGINT, SIG_IGN)
   let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
   signalSource.setEventHandler {
     Task { @MainActor in
-      keeper.stop()
+      runtimeState.keeper.stop()
       print("\nStopped.")
       exit(0)
     }
