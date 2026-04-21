@@ -21,12 +21,12 @@ public enum AppStatus: String, CaseIterable, Sendable {
 
   public var subtitle: String {
     switch self {
+    case .active:
+      return "Backlight stays on"
     case .disabled:
-      return "Keyboard behaves normally"
+      return "Backlight turns off automatically"
     case .waiting:
       return "Looking for a Logitech receiver"
-    case .active:
-      return "Keeping backlight on"
     case .degraded:
       return "Trouble reaching the receiver"
     }

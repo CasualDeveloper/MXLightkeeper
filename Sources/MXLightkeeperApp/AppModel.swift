@@ -36,6 +36,7 @@ final class AppModel {
   var lastErrorMessage: String?
   var keyboardName: String?
   var batteryStatus: BatteryStatus?
+  var batteryLastUpdatedAt: Date?
   var isRunningDebugAction = false
   var retryAttempt = 0
 
@@ -361,6 +362,7 @@ final class AppModel {
     activeMatch = nil
     keyboardName = nil
     batteryStatus = nil
+    batteryLastUpdatedAt = nil
     lastErrorMessage = nil
     status = AppStatusReducer.reduce(from: status, event: .receiverMissing)
   }
@@ -413,6 +415,7 @@ final class AppModel {
       )
 
       batteryStatus = status
+      batteryLastUpdatedAt = Date()
       logger.info("Battery: \(status.dischargeLevel, privacy: .public)%, status=\(status.powerStatus.rawValue, privacy: .public)")
     } catch {
       logger.error("Battery status discovery failed: \(error.localizedDescription, privacy: .public)")

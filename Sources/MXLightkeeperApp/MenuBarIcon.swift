@@ -14,7 +14,7 @@ struct MenuBarIcon: View {
   }
 
   private var tint: Color {
-    status == .degraded ? .red : .primary
+    status == .degraded ? .orange : .primary
   }
 
   private var accessibilityDescription: String {

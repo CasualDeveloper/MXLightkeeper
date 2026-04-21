@@ -32,22 +32,16 @@ struct MenuBarContentView: View {
   }
   #endif
 
-  private var statusTint: Color {
-    switch model.status {
-    case .active:
-      return .green
-    case .waiting, .disabled:
-      return .orange
-    case .degraded:
-      return .red
-    }
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       header
       Divider()
-      details
+
+      if model.activeMatch == nil {
+        emptyState
+      } else {
+        infoRows
+      }
 
       #if DEBUG
       Divider()
@@ -62,79 +56,151 @@ struct MenuBarContentView: View {
 
   private var header: some View {
     HStack(alignment: .center, spacing: 12) {
-      StatusDot(tint: statusTint)
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text(model.status.title)
-          .font(.headline)
-          .foregroundStyle(.primary)
-
-        Text(model.status.subtitle)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-      .accessibilityElement(children: .combine)
-      .accessibilityLabel("\(model.status.title), \(model.status.subtitle)")
-
-      Spacer(minLength: 8)
-
       Toggle("Keep backlight on", isOn: enabledBinding)
         .toggleStyle(.switch)
         .labelsHidden()
         .accessibilityLabel("Keep backlight on")
+
+      VStack(alignment: .leading, spacing: 3) {
+        Text("MXLightkeeper")
+          .font(.headline)
+          .foregroundStyle(.primary)
+
+        HStack(alignment: .top, spacing: 5) {
+          if model.status == .degraded {
+            Image(systemName: "exclamationmark.triangle.fill")
+              .font(.caption)
+              .foregroundStyle(.orange)
+              .padding(.top, 2)
+          }
+          Text(model.status.subtitle)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("MXLightkeeper, \(model.status.title), \(model.status.subtitle)")
+
+      Spacer(minLength: 0)
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 14)
   }
 
-  private var details: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      if let error = model.lastErrorMessage {
-        Label {
-          Text(error)
-            .foregroundStyle(.primary)
-        } icon: {
-          Image(systemName: "exclamationmark.triangle.fill")
-            .foregroundStyle(.red)
-        }
-        .font(.footnote)
-        .fixedSize(horizontal: false, vertical: true)
+  private var emptyState: some View {
+    HStack(alignment: .top, spacing: 12) {
+      Image(systemName: "cable.connector.horizontal")
+        .font(.title3)
+        .foregroundStyle(.secondary)
+        .frame(width: 28, height: 28)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text("No Logitech receiver detected")
+          .font(.footnote)
+          .foregroundStyle(.primary)
+        Text("Plug in your Unifying receiver to get started.")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
       }
 
-      LabeledContent("Receiver") {
+      Spacer(minLength: 0)
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 14)
+  }
+
+  private var infoRows: some View {
+    Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 10) {
+      GridRow {
+        infoIcon("antenna.radiowaves.left.and.right")
         Text(model.receiverLabel)
           .foregroundStyle(.primary)
           .lineLimit(1)
           .truncationMode(.middle)
       }
-      .font(.footnote)
-      .foregroundStyle(.secondary)
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("Receiver, \(model.receiverLabel)")
 
       if let keyboardLabel = model.keyboardLabel {
-        LabeledContent("Keyboard") {
+        GridRow {
+          infoIcon("keyboard")
           Text(keyboardLabel)
             .foregroundStyle(.primary)
             .lineLimit(1)
             .truncationMode(.tail)
         }
-        .font(.footnote)
-        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Keyboard, \(keyboardLabel)")
       }
 
       if let batteryLabel = model.batteryLabel {
-        LabeledContent("Battery") {
+        GridRow {
+          Image(systemName: batterySymbol)
+            .foregroundStyle(batterySymbolColor)
+            .frame(width: 16)
           Text(batteryLabel)
             .foregroundStyle(.primary)
             .monospacedDigit()
-            .accessibilityLabel(model.batteryAccessibilityLabel ?? batteryLabel)
         }
-        .font(.footnote)
-        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Battery, \(model.batteryAccessibilityLabel ?? batteryLabel)")
+        .help(batteryRefreshTooltip)
       }
     }
+    .font(.footnote)
     .padding(.horizontal, 16)
     .padding(.vertical, 14)
+  }
+
+  private func infoIcon(_ name: String) -> some View {
+    Image(systemName: name)
+      .foregroundStyle(.secondary)
+      .frame(width: 16)
+  }
+
+  private var batterySymbol: String {
+    guard let battery = model.batteryStatus else { return "battery.0percent" }
+
+    switch battery.powerStatus {
+    case .recharging, .almostFull, .wiredCharging, .chargingComplete:
+      return "battery.100percent.bolt"
+    default:
+      break
+    }
+
+    let level = battery.dischargeLevel
+    switch level {
+    case 88...: return "battery.100percent"
+    case 63...87: return "battery.75percent"
+    case 38...62: return "battery.50percent"
+    case 13...37: return "battery.25percent"
+    default: return "battery.0percent"
+    }
+  }
+
+  private var batterySymbolColor: Color {
+    guard let battery = model.batteryStatus else { return .primary }
+
+    switch battery.powerStatus {
+    case .critical:
+      return .red
+    case .recharging, .almostFull, .wiredCharging, .chargingComplete:
+      return .green
+    case .discharging:
+      return battery.dischargeLevel < 20 ? .orange : .primary
+    default:
+      return .primary
+    }
+  }
+
+  private var batteryRefreshTooltip: String {
+    guard let date = model.batteryLastUpdatedAt else { return "Battery status" }
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return "Updated \(formatter.localizedString(for: date, relativeTo: Date()))"
   }
 
   #if DEBUG
@@ -193,29 +259,24 @@ struct MenuBarContentView: View {
 
   private var footer: some View {
     HStack(alignment: .center, spacing: 12) {
-      Toggle("Launch at login", isOn: launchAtLoginBinding)
-        .font(.footnote)
-
-      Spacer(minLength: 8)
-
       Button("Quit") { model.quit() }
         .buttonStyle(.bordered)
         .controlSize(.small)
         .keyboardShortcut("q")
+
+      Spacer(minLength: 8)
+
+      HStack(spacing: 6) {
+        Text("Launch at login")
+          .font(.footnote)
+        Toggle("Launch at login", isOn: launchAtLoginBinding)
+          .toggleStyle(.checkbox)
+          .labelsHidden()
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("Launch at login")
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
-  }
-}
-
-private struct StatusDot: View {
-  let tint: Color
-
-  var body: some View {
-    Circle()
-      .fill(tint)
-      .frame(width: 10, height: 10)
-      .frame(width: 28, height: 28)
-      .accessibilityHidden(true)
   }
 }
