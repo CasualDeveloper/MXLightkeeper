@@ -17,10 +17,14 @@ struct MenuBarIcon: View {
     status == .degraded ? .red : .primary
   }
 
+  private var accessibilityDescription: String {
+    "MXLightkeeper, backlight \(status.title.lowercased())"
+  }
+
   var body: some View {
     Image(systemName: symbolName)
       .symbolRenderingMode(.monochrome)
       .foregroundStyle(tint)
-      .accessibilityHidden(true)
+      .accessibilityLabel(accessibilityDescription)
   }
 }

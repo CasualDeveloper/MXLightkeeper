@@ -114,6 +114,25 @@ final class AppModel {
     }
   }
 
+  var batteryAccessibilityLabel: String? {
+    guard let batteryStatus else {
+      return nil
+    }
+
+    switch batteryStatus.powerStatus {
+    case .chargingComplete:
+      return "Charged"
+    case .recharging, .almostFull, .wiredCharging:
+      return "\(batteryStatus.dischargeLevel) percent, charging"
+    case .discharging:
+      return "\(batteryStatus.dischargeLevel) percent"
+    case .critical:
+      return "Critical"
+    case .invalidBattery, .thermalError, .unknown:
+      return nil
+    }
+  }
+
   var receiverSummary: String {
     guard let activeReceiver else {
       return "—"

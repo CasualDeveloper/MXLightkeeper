@@ -74,6 +74,8 @@ struct MenuBarContentView: View {
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
       }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("\(model.status.title), \(model.status.subtitle)")
 
       Spacer(minLength: 8)
 
@@ -125,6 +127,7 @@ struct MenuBarContentView: View {
           Text(batteryLabel)
             .foregroundStyle(.primary)
             .monospacedDigit()
+            .accessibilityLabel(model.batteryAccessibilityLabel ?? batteryLabel)
         }
         .font(.footnote)
         .foregroundStyle(.secondary)
