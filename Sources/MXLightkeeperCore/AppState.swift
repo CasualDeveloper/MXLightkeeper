@@ -1,0 +1,88 @@
+import Foundation
+
+public enum AppStatus: String, CaseIterable, Sendable {
+  case disabled
+  case waiting
+  case active
+  case degraded
+
+  public var title: String {
+    switch self {
+    case .disabled:
+      return "Off"
+    case .waiting:
+      return "Waiting"
+    case .active:
+      return "On"
+    case .degraded:
+      return "Reconnecting"
+    }
+  }
+
+  public var subtitle: String {
+    switch self {
+    case .disabled:
+      return "Keyboard behaves normally"
+    case .waiting:
+      return "Looking for a Logitech receiver"
+    case .active:
+      return "Keeping backlight on"
+    case .degraded:
+      return "Trouble reaching the receiver"
+    }
+  }
+
+  public var systemImageName: String {
+    switch self {
+    case .disabled:
+      return "pause.circle"
+    case .waiting:
+      return "clock.arrow.trianglehead.counterclockwise.rotate.90"
+    case .active:
+      return "sun.max.circle.fill"
+    case .degraded:
+      return "exclamationmark.triangle"
+    }
+  }
+}
+
+public enum AppEvent: Sendable, Equatable {
+  case setEnabled(Bool)
+  case receiverMissing
+  case receiverAcquired
+  case writeFailed
+  case recovered
+}
+
+public enum AppStatusReducer {
+  public static func reduce(from current: AppStatus, event: AppEvent) -> AppStatus {
+    switch event {
+    case .setEnabled(false):
+      return .disabled
+    case .setEnabled(true):
+      return .waiting
+    case .receiverMissing:
+      return current == .disabled ? .disabled : .waiting
+    case .receiverAcquired, .recovered:
+      return current == .disabled ? .disabled : .active
+    case .writeFailed:
+      return current == .disabled ? .disabled : .degraded
+    }
+  }
+}
+
+public struct MXLightkeeperSettings: Codable, Equatable, Sendable {
+  public var isEnabled: Bool
+  public var launchAtLogin: Bool
+  public var enableExperimentalBolt: Bool
+
+  public init(
+    isEnabled: Bool = true,
+    launchAtLogin: Bool = false,
+    enableExperimentalBolt: Bool = false
+  ) {
+    self.isEnabled = isEnabled
+    self.launchAtLogin = launchAtLogin
+    self.enableExperimentalBolt = enableExperimentalBolt
+  }
+}

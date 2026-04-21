@@ -1,0 +1,81 @@
+# MXLightkeeper
+
+A macOS menu bar utility that keeps the backlight on your Logitech MX Keys keyboard from ever timing out.
+
+## Why
+
+The MX Keys switches off its own backlight after a short period of inactivity. When the keyboard is permanently plugged into power and used with a USB Unifying or Bolt receiver, there's no real need for that — the light just comes on late, when you start typing, which is undesirable for people in darker environments who need to type in their password for macOS login. MXLightkeeper periodically refreshes the backlight state through the Logitech HID++ protocol so the light stays lit as long as the app is running.
+
+This is a macOS port of the Windows [Backlighter](https://github.com/crsten/backlighter) utility, rewritten to use the real HID++ `BACKLIGHT2` feature rather than the original periodic off/on pulse.
+
+## Install
+
+Build the `.app` bundle:
+
+```bash
+chmod +x scripts/build-app.sh
+scripts/build-app.sh
+cp -R dist/MXLightkeeper.app /Applications/
+```
+
+Open it from `/Applications`, toggle **Keep backlight on**, and optionally enable **Launch at login**.
+
+## Terminal tool
+
+`mxlightkeeper` is a companion CLI for scripting or one-off control:
+
+```bash
+swift build -c release --product mxlightkeeper
+cp .build/release/mxlightkeeper /usr/local/bin/
+
+mxlightkeeper read                 # print current BACKLIGHT2 state
+mxlightkeeper on                   # turn backlight on
+mxlightkeeper off                  # turn backlight off
+mxlightkeeper manual --level 7     # set manual brightness 1-7
+mxlightkeeper keep                 # run keep-alive loop until Ctrl-C
+```
+
+## Requirements
+
+- macOS 26+
+- A Logitech Unifying receiver (`0x046d:0xc52b`) paired with an MX Keys
+- To build from source: Xcode 26.4+ / Swift 6.3+
+
+Bolt receivers have an experimental matcher behind a flag and are disabled by default.
+
+## How it works
+
+The Unifying receiver exposes a vendor-specific HID interface on usage page `0xFF00`. A HID++ `getFeatureID` request resolves feature `BACKLIGHT2 (0x1982)` to feature index `0x0b` on the MX Keys. The keep-alive loop writes the structured `BACKLIGHT2` state (`enabled = 1`, preserving the user's brightness level and mode) every 180 seconds.
+
+See [`docs/reverse-engineering.md`](docs/reverse-engineering.md) for protocol details and how the feature index was discovered.
+
+## Layout
+
+- `Sources/MXLightkeeperCore/` — receiver matching, HID++ types, `BACKLIGHT2` codec, keep-alive loop
+- `Sources/MXLightkeeperApp/` — SwiftUI menu bar app
+- `Sources/mxlightkeeper/` — terminal tool
+- `Tests/MXLightkeeperCoreTests/` — unit tests for the core module
+- `Packaging/` — `Info.plist` and pre-rendered `AppIcon.icns`
+- `scripts/build-app.sh` — builds and signs the `.app` bundle
+
+## Permissions and security
+
+MXLightkeeper talks to the Logitech receiver's vendor-specific HID interface only. It does not read keyboard input, request Accessibility or Input Monitoring for the menu bar app, or make any network calls.
+
+**First-time launch.** The released `.app` is ad-hoc signed, not notarized. If you build from source locally (`scripts/build-app.sh`) Gatekeeper is fine. If you downloaded a prebuilt `.app`, right-click → **Open** the first time, or run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/MXLightkeeper.app
+```
+
+**Login items.** Enabling "Launch at login" shows a standard macOS notification and adds MXLightkeeper to **System Settings → General → Login Items**.
+
+**Terminal tool.** The `mxlightkeeper keep` subcommand is write-only and needs no permissions. The `read`, `on`, `off`, and `manual` subcommands read device state via a HID input callback, which may prompt for Input Monitoring the first time Terminal runs the CLI.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
+
+## Support
+
+If this saves you from staring at a dim keyboard, you can [buy me a coffee](https://ko-fi.com/casualdeveloper11).
