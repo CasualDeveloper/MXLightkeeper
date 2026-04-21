@@ -1,0 +1,26 @@
+import MXLightkeeperCore
+import SwiftUI
+
+struct MenuBarIcon: View {
+  let status: AppStatus
+
+  private var symbolName: String {
+    switch status {
+    case .active:
+      return "light.max"
+    case .waiting, .degraded, .disabled:
+      return "light.min"
+    }
+  }
+
+  private var tint: Color {
+    status == .degraded ? .red : .primary
+  }
+
+  var body: some View {
+    Image(systemName: symbolName)
+      .symbolRenderingMode(.monochrome)
+      .foregroundStyle(tint)
+      .accessibilityHidden(true)
+  }
+}
