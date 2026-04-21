@@ -17,8 +17,8 @@ This is a macOS port of the Windows [Backlighter](https://github.com/crsten/back
 Build the `.app` bundle:
 
 ```bash
-chmod +x scripts/build-app.sh
-scripts/build-app.sh
+chmod +x scripts/build-app-bundle.sh
+scripts/build-app-bundle.sh
 cp -R dist/MXLightkeeper.app /Applications/
 ```
 
@@ -64,13 +64,13 @@ See [`docs/reverse-engineering.md`](docs/reverse-engineering.md) for protocol de
 - `Sources/mxlightkeeper/` — terminal frontend over the shared core
 - `Tests/MXLightkeeperCoreTests/` — unit tests for the core module
 - `Packaging/` — `Info.plist` and pre-rendered `AppIcon.icns`
-- `scripts/build-app.sh` — builds and signs the `.app` bundle
+- `scripts/build-app-bundle.sh` — builds and signs the `.app` bundle
 
 ## Permissions and security
 
 MXLightkeeper talks to the Logitech receiver's vendor-specific HID interface only (usage page `0xFF00`, not a keyboard interface). It does not read keystrokes, request Accessibility or Input Monitoring, or make any network calls. It does query the keyboard for its model name, battery level, and charging state via HID++ — all of which are read on the same vendor-specific interface and do not trigger TCC prompts.
 
-**First-time launch.** The released `.app` is ad-hoc signed, not notarized. If you build from source locally (`scripts/build-app.sh`) Gatekeeper is fine. If you downloaded a prebuilt `.app`, right-click → **Open** the first time, or run:
+**First-time launch.** The released `.app` is ad-hoc signed, not notarized. If you build from source locally (`scripts/build-app-bundle.sh`) Gatekeeper is fine. If you downloaded a prebuilt `.app`, right-click -> **Open** the first time, or run:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/MXLightkeeper.app
