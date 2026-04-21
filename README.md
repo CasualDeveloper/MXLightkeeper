@@ -2,6 +2,10 @@
 
 A macOS menu bar utility that keeps the backlight on your Logitech MX Keys keyboard from ever timing out.
 
+![MXLightkeeper menu bar preview showing the backlight toggle, receiver status, keyboard model, battery state, and launch-at-login option](HERO.png)
+
+> Verified on MX Keys for Mac over a Logitech Unifying receiver. Bolt receivers and other MX Keys variants are enabled too, but stay labeled `(alpha)` until confirmed on real hardware.
+
 ## Why
 
 The MX Keys switches off its own backlight after a short period of inactivity. When the keyboard is permanently plugged into power and used with a USB Unifying or Bolt receiver, there's no real need for that — the light just comes on late, when you start typing, which is undesirable for people in darker environments who need to type in their password for macOS login. MXLightkeeper periodically refreshes the backlight state through the Logitech HID++ protocol so the light stays lit as long as the app is running.
@@ -38,14 +42,14 @@ mxlightkeeper keep                 # run keep-alive loop until Ctrl-C
 ## Requirements
 
 - macOS 26+
-- A Logitech Unifying receiver (`0x046d:0xc52b`) paired with an MX Keys
+- A Logitech Unifying (`0x046d:0xc52b`) or Bolt (`0x046d:0xc548`, alpha) receiver paired with an MX Keys family keyboard
 - To build from source: Xcode 26.4+ / Swift 6.3+
 
-Bolt receivers have an experimental matcher behind a flag and are disabled by default.
+Only "MX Keys for Mac" on Unifying has been end-to-end verified. Other MX Keys variants and Bolt receiver paths are enabled, but shown as `(alpha)` until confirmed on real hardware.
 
 ## How it works
 
-The Unifying receiver exposes a vendor-specific HID interface on usage page `0xFF00`. A HID++ `getFeatureID` request resolves feature `BACKLIGHT2 (0x1982)` to feature index `0x0b` on the MX Keys. The keep-alive loop writes the structured `BACKLIGHT2` state (`enabled = 1`, preserving the user's brightness level and mode) every 180 seconds.
+The matched Logitech receiver exposes a vendor-specific HID interface on usage page `0xFF00`. A HID++ `getFeatureID` request resolves feature `BACKLIGHT2 (0x1982)` to feature index `0x0b` on the reference MX Keys for Mac setup. The keep-alive loop writes the structured `BACKLIGHT2` state (`enabled = 1`, preserving the user's brightness level and mode) every 180 seconds.
 
 In parallel, every 60 seconds a background poll re-reads `DEVICE_NAME (0x0005)` and `BATTERY_STATUS (0x1000)` from the keyboard to surface the model name and charge / charging state in the menu, and re-enumerates the receiver so unplug / replug is noticed automatically. The poll runs regardless of whether the keep-alive toggle is on.
 
