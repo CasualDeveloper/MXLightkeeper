@@ -108,6 +108,27 @@ struct MenuBarContentView: View {
       }
       .font(.footnote)
       .foregroundStyle(.secondary)
+
+      if let keyboardLabel = model.keyboardLabel {
+        LabeledContent("Keyboard") {
+          Text(keyboardLabel)
+            .foregroundStyle(.primary)
+            .lineLimit(1)
+            .truncationMode(.tail)
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+      }
+
+      if let batteryLabel = model.batteryLabel {
+        LabeledContent("Battery") {
+          Text(batteryLabel)
+            .foregroundStyle(.primary)
+            .monospacedDigit()
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+      }
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 14)

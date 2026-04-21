@@ -104,6 +104,26 @@ Replaying the legacy Backlighter raw pulse (`10 01 0b 1f 00 00 ff` then `10 01 0
 
 A community report (Reddit) claimed the Windows matcher also worked for Bolt after changing `productId` to `0xc548`, keeping `vendorId 0x046d`, and using usage page `65280`. This is treated as a research lead, not proof. The `mxlightkeeper` CLI and menu bar app include a `--bolt` / experimental toggle for that matcher, but it is disabled by default until verified on real Bolt hardware.
 
+## Other exposed features
+
+Beyond `BACKLIGHT2`, the shipping app uses two additional HID++ features the MX Keys exposes:
+
+- `DEVICE_NAME (0x0005)` — returns the keyboard model name as a string (e.g. `"MX Keys for Mac"`). Feature-set discovery resolves this to index `0x03` on the MX Keys. Read via `fn 0x00` (`getDeviceNameCount`) followed by `fn 0x01` (`getDeviceName`) in 14-byte chunks until the full length is retrieved.
+- `BATTERY_STATUS (0x1000)` — returns three bytes: discharge level (`0–100`), next reportable level, and a power-status enum: `discharging`, `recharging`, `almost-full`, `charging-complete`, `wired-charging`, `critical`, `invalid-battery`, `thermal-error`. Feature-set discovery resolves this to index `0x07`. Read via `fn 0x00` (`getBatteryLevelStatus`).
+
+Both are read every 60 seconds in a background task that runs regardless of the keep-alive toggle, and the same poll re-enumerates the receiver so unplug/replug is reflected in the UI.
+
+## TCC and the vendor-specific interface
+
+`IOHIDDeviceRegisterInputReportCallback` on the Logitech Unifying receiver's vendor-specific HID interface (usage page `0xFF00`) does **not** trigger macOS's Input Monitoring permission prompt. Verified empirically on macOS 26 by shipping a release build that registers the callback from the app's own process and observing no prompt.
+
+Two things must be true for this to hold:
+
+1. The `IOHIDManager` uses `IOHIDManagerSetDeviceMatchingMultiple` with an explicit match on `vendorID=0x046d`, `productID=0xc52b`, `usagePage=0xFF00`, `usage=1` — not `nil` (which would match all HID devices, including keyboards, and would trigger Input Monitoring).
+2. The callback is registered on the specific matched device, not broadly on the manager.
+
+With both in place, features like `DEVICE_NAME` and `BATTERY_STATUS` can be read from the shipping app without special entitlements or user permission grants.
+
 ## Discipline
 
 - Only add newly verified receiver IDs, usage pages, descriptor details, or report observations here.

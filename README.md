@@ -47,7 +47,9 @@ Bolt receivers have an experimental matcher behind a flag and are disabled by de
 
 The Unifying receiver exposes a vendor-specific HID interface on usage page `0xFF00`. A HID++ `getFeatureID` request resolves feature `BACKLIGHT2 (0x1982)` to feature index `0x0b` on the MX Keys. The keep-alive loop writes the structured `BACKLIGHT2` state (`enabled = 1`, preserving the user's brightness level and mode) every 180 seconds.
 
-See [`docs/reverse-engineering.md`](docs/reverse-engineering.md) for protocol details and how the feature index was discovered.
+In parallel, every 60 seconds a background poll re-reads `DEVICE_NAME (0x0005)` and `BATTERY_STATUS (0x1000)` from the keyboard to surface the model name and charge / charging state in the menu, and re-enumerates the receiver so unplug / replug is noticed automatically. The poll runs regardless of whether the keep-alive toggle is on.
+
+See [`docs/reverse-engineering.md`](docs/reverse-engineering.md) for protocol details and how the feature indexes were discovered.
 
 ## Layout
 
@@ -60,7 +62,7 @@ See [`docs/reverse-engineering.md`](docs/reverse-engineering.md) for protocol de
 
 ## Permissions and security
 
-MXLightkeeper talks to the Logitech receiver's vendor-specific HID interface only. It does not read keyboard input, request Accessibility or Input Monitoring for the menu bar app, or make any network calls.
+MXLightkeeper talks to the Logitech receiver's vendor-specific HID interface only (usage page `0xFF00`, not a keyboard interface). It does not read keystrokes, request Accessibility or Input Monitoring, or make any network calls. It does query the keyboard for its model name, battery level, and charging state via HID++ — all of which are read on the same vendor-specific interface and do not trigger TCC prompts.
 
 **First-time launch.** The released `.app` is ad-hoc signed, not notarized. If you build from source locally (`scripts/build-app.sh`) Gatekeeper is fine. If you downloaded a prebuilt `.app`, right-click → **Open** the first time, or run:
 
@@ -70,7 +72,7 @@ xattr -dr com.apple.quarantine /Applications/MXLightkeeper.app
 
 **Login items.** Enabling "Launch at login" shows a standard macOS notification and adds MXLightkeeper to **System Settings → General → Login Items**.
 
-**Terminal tool.** The `mxlightkeeper keep` subcommand is write-only and needs no permissions. The `read`, `on`, `off`, and `manual` subcommands read device state via a HID input callback, which may prompt for Input Monitoring the first time Terminal runs the CLI.
+**Terminal tool.** All `mxlightkeeper` subcommands operate on the receiver's vendor-specific HID interface (usage page `0xFF00`), which macOS does not classify as keyboard input. No TCC prompts are expected.
 
 ## License
 

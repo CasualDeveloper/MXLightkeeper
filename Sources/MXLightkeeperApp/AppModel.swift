@@ -22,6 +22,8 @@ final class AppModel {
   private let logger = Logger(subsystem: "MXLightkeeper", category: "AppModel")
   private let settingsEncoder = JSONEncoder()
   private var backlightKeeper: BacklightKeeper?
+  private var devicePollTask: Task<Void, Never>?
+  private static let devicePollIntervalNanoseconds: UInt64 = 60 * 1_000_000_000
 
   private(set) var isEnabled: Bool
   private(set) var launchAtLogin: Bool
@@ -32,6 +34,8 @@ final class AppModel {
   var activeMatch: HIDReceiverMatch?
   var availableReceivers: [HIDReceiverMatch] = []
   var lastErrorMessage: String?
+  var keyboardName: String?
+  var batteryStatus: BatteryStatus?
   var isRunningDebugAction = false
   var retryAttempt = 0
 
@@ -49,6 +53,23 @@ final class AppModel {
     status = settings.isEnabled ? .waiting : .disabled
 
     refreshReceivers()
+    startDevicePolling()
+  }
+
+  private func startDevicePolling() {
+    devicePollTask?.cancel()
+    devicePollTask = Task { @MainActor [weak self] in
+      while !Task.isCancelled {
+        if let self {
+          self.refreshReceivers()
+          if self.activeMatch != nil {
+            self.discoverKeyboardName()
+            self.discoverBatteryStatus()
+          }
+        }
+        try? await Task.sleep(nanoseconds: Self.devicePollIntervalNanoseconds)
+      }
+    }
   }
 
   var settingsSnapshot: MXLightkeeperSettings {
@@ -59,12 +80,38 @@ final class AppModel {
     )
   }
 
+  var keyboardLabel: String? {
+    guard let keyboardName, !keyboardName.isEmpty else {
+      return nil
+    }
+    return keyboardName
+  }
+
   var receiverLabel: String {
     guard let activeMatch else {
       return "No receiver connected"
     }
 
     return "\(activeMatch.matcher.kind.displayName) receiver"
+  }
+
+  var batteryLabel: String? {
+    guard let batteryStatus else {
+      return nil
+    }
+
+    switch batteryStatus.powerStatus {
+    case .chargingComplete:
+      return "Charged"
+    case .recharging, .almostFull, .wiredCharging:
+      return "\(batteryStatus.dischargeLevel)% · Charging"
+    case .discharging:
+      return "\(batteryStatus.dischargeLevel)%"
+    case .critical:
+      return "Critical"
+    case .invalidBattery, .thermalError, .unknown:
+      return nil
+    }
   }
 
   var receiverSummary: String {
@@ -293,6 +340,8 @@ final class AppModel {
   func markReceiverMissing() {
     activeReceiver = nil
     activeMatch = nil
+    keyboardName = nil
+    batteryStatus = nil
     lastErrorMessage = nil
     status = AppStatusReducer.reduce(from: status, event: .receiverMissing)
   }
@@ -303,6 +352,118 @@ final class AppModel {
     lastErrorMessage = nil
     retryAttempt = 0
     status = AppStatusReducer.reduce(from: status, event: .receiverAcquired)
+  }
+
+  private func discoverBatteryStatus() {
+    do {
+      let target = try HIDReceiverService.firstMatchedDevice(
+        includeExperimentalBolt: experimentalBoltEnabled
+      )
+      let session = try HIDPPProbeSession(target: target)
+      defer { session.close() }
+
+      let rootRequest = HIDPPReport(
+        reportID: HIDPPReport.shortReportID,
+        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
+        featureIndex: 0x00,
+        functionID: 0x00,
+        softwareID: HIDPPSoftwareID.mxLightkeeper,
+        parameters: [0x10, 0x00, 0x00]
+      )
+      let rootResponse = try session.sendRequest(rootRequest, timeout: 1.0)
+      let batteryFeatureIndex = rootResponse.parameters.first ?? 0
+      guard batteryFeatureIndex != 0 else {
+        return
+      }
+
+      let statusRequest = HIDPPReport(
+        reportID: HIDPPReport.shortReportID,
+        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
+        featureIndex: batteryFeatureIndex,
+        functionID: 0x00,
+        softwareID: HIDPPSoftwareID.mxLightkeeper,
+        parameters: [0x00, 0x00, 0x00]
+      )
+      let response = try session.sendRequest(statusRequest, timeout: 1.0)
+      guard response.parameters.count >= 3 else { return }
+
+      let status = BatteryStatus(
+        dischargeLevel: response.parameters[0],
+        nextLevel: response.parameters[1],
+        powerStatus: BatteryPowerStatus.fromByte(response.parameters[2])
+      )
+
+      batteryStatus = status
+      logger.info("Battery: \(status.dischargeLevel, privacy: .public)%, status=\(status.powerStatus.rawValue, privacy: .public)")
+    } catch {
+      logger.error("Battery status discovery failed: \(error.localizedDescription, privacy: .public)")
+    }
+  }
+
+  private func discoverKeyboardName() {
+    do {
+      let target = try HIDReceiverService.firstMatchedDevice(
+        includeExperimentalBolt: experimentalBoltEnabled
+      )
+      let session = try HIDPPProbeSession(target: target)
+      defer { session.close() }
+
+      let rootRequest = HIDPPReport(
+        reportID: HIDPPReport.shortReportID,
+        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
+        featureIndex: 0x00,
+        functionID: 0x00,
+        softwareID: HIDPPSoftwareID.mxLightkeeper,
+        parameters: [0x00, 0x05, 0x00]
+      )
+      let rootResponse = try session.sendRequest(rootRequest, timeout: 1.0)
+      let deviceNameFeatureIndex = rootResponse.parameters.first ?? 0
+      guard deviceNameFeatureIndex != 0 else {
+        return
+      }
+
+      let countRequest = HIDPPReport(
+        reportID: HIDPPReport.shortReportID,
+        deviceIndex: HIDPPDeviceIndex.receiverSlot1,
+        featureIndex: deviceNameFeatureIndex,
+        functionID: 0x00,
+        softwareID: HIDPPSoftwareID.mxLightkeeper,
+        parameters: [0x00, 0x00, 0x00]
+      )
+      let countResponse = try session.sendRequest(countRequest, timeout: 1.0)
+      let count = Int(countResponse.parameters.first ?? 0)
+      guard count > 0, count < 64 else {
+        return
+      }
+
+      var bytes: [UInt8] = []
+      var offset = 0
+      while offset < count {
+        let nameRequest = HIDPPReport(
+          reportID: HIDPPReport.shortReportID,
+          deviceIndex: HIDPPDeviceIndex.receiverSlot1,
+          featureIndex: deviceNameFeatureIndex,
+          functionID: 0x01,
+          softwareID: HIDPPSoftwareID.mxLightkeeper,
+          parameters: [UInt8(offset), 0x00, 0x00]
+        )
+        let nameResponse = try session.sendRequest(nameRequest, timeout: 1.0)
+        let remaining = count - offset
+        let chunk = Array(nameResponse.parameters.prefix(remaining))
+        guard !chunk.isEmpty else { break }
+        bytes.append(contentsOf: chunk)
+        offset += chunk.count
+      }
+
+      let name = String(decoding: bytes, as: UTF8.self)
+        .trimmingCharacters(in: .controlCharacters)
+      guard !name.isEmpty else { return }
+
+      keyboardName = name
+      logger.info("Discovered keyboard name: \(name, privacy: .public)")
+    } catch {
+      logger.error("Keyboard name discovery failed: \(error.localizedDescription, privacy: .public)")
+    }
   }
 
   func markDegraded(_ message: String) {
