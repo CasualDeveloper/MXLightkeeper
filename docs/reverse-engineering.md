@@ -92,7 +92,15 @@ For write requests, the payload is:
 - `dhi`
 - `dpow`
 
-Solaar also notes an MX Keys S-specific extension packet, which suggests some Logitech keyboards require more than the basic short form.
+Solaar notes (`settings_templates.py:264`) that the MX Keys S requires a longer 16-byte payload:
+
+```
+11 02 0c1a 000dff000b000b003c00000000000000
+```
+
+Breakdown: `on/off | options | 0xFF | level | durations[6 × 2 bytes LE]`. The last 6 bytes (3 additional duration fields) are ignored by older MX Keys models but must be present for MX Keys S. `Backlight2Codec.writeRequest` produces exactly this: the 10 bytes of real data occupy the start of the long report's parameter region and `HIDPPReport.serializedData` zero-pads the rest of the 20-byte frame, so the MX Keys S extension format falls out naturally.
+
+Only "MX Keys for Mac" has been end-to-end verified on real hardware. Other keyboards ("MX Keys", "MX Keys Mini", "MX Keys S", "MX Keys S Combo") use the same code path but are flagged in the UI as "(alpha)" until confirmed.
 
 ## What the shipping app uses
 

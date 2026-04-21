@@ -23,14 +23,7 @@ struct MenuBarContentView: View {
     )
   }
 
-  #if DEBUG
-  private var experimentalBoltBinding: Binding<Bool> {
-    Binding(
-      get: { model.experimentalBoltEnabled },
-      set: { model.setExperimentalBoltEnabled($0) }
-    )
-  }
-  #endif
+
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -207,9 +200,6 @@ struct MenuBarContentView: View {
   private var debugSection: some View {
     DisclosureGroup("Developer", isExpanded: $isShowingDebugActions) {
       VStack(alignment: .leading, spacing: 12) {
-        Toggle("Experimental Bolt support", isOn: experimentalBoltBinding)
-          .font(.footnote)
-
         VStack(alignment: .leading, spacing: 6) {
           debugRow("Matchers", model.matcherSummary)
           debugRow("Device", model.receiverSummary)

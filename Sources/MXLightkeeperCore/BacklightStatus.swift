@@ -126,6 +126,11 @@ public enum Backlight2Codec {
   public static func writeRequest(from state: Backlight2State) -> HIDPPReport {
     let level = state.mode == 0x03 ? state.level : 0
 
+    // BACKLIGHT2 write payload per Solaar hidpp20.py:
+    //   enabled(B) options(B) 0xFF(B) level(B) dho(H LE) dhi(H LE) dpow(H LE)
+    // = 10 bytes. The containing HID++ long report serializes to 20 bytes
+    // total with the remaining 6 trailing bytes zero-padded; MX Keys S
+    // requires the full 16-byte payload, which this padding produces.
     return HIDPPReport(
       reportID: HIDPPReport.longReportID,
       deviceIndex: HIDPPDeviceIndex.receiverSlot1,
@@ -136,8 +141,6 @@ public enum Backlight2Codec {
         state.enabled,
         state.options,
         0xff,
-        UInt8(state.effects & 0xff),
-        UInt8((state.effects >> 8) & 0xff),
         level,
         UInt8(state.durationHandsOut & 0xff),
         UInt8((state.durationHandsOut >> 8) & 0xff),

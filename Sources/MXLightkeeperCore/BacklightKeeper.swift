@@ -6,6 +6,7 @@ public final class BacklightKeeper {
   private let snapshot: ReceiverSnapshot
   private let refreshIntervalNanoseconds: UInt64
   private var keepAliveTask: Task<Void, Never>?
+  private var isClosed = false
 
   public private(set) var isRunning = false
 
@@ -17,8 +18,14 @@ public final class BacklightKeeper {
     refreshIntervalNanoseconds = UInt64(refreshIntervalSeconds * 1_000_000_000)
   }
 
-  deinit {
+  public func close() {
+    guard !isClosed else {
+      return
+    }
+
     keepAliveTask?.cancel()
+    keepAliveTask = nil
+    isClosed = true
   }
 
   public func start() {
@@ -29,11 +36,7 @@ public final class BacklightKeeper {
     keepAliveTask?.cancel()
     keepAliveTask = Task.detached { [receiverService, snapshot, refreshIntervalNanoseconds] in
       while !Task.isCancelled {
-        try? receiverService.sendOutputReport(
-          KeepAliveProtocol.onSignal,
-          to: snapshot,
-          includeExperimentalBolt: false
-        )
+        try? receiverService.sendOutputReport(KeepAliveProtocol.onSignal, to: snapshot)
         try? await Task.sleep(nanoseconds: refreshIntervalNanoseconds)
       }
     }

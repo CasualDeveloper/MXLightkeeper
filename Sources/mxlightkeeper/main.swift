@@ -30,8 +30,8 @@ func usage() {
       mxlightkeeper manual --level N       Set manual brightness level (1-7)
       mxlightkeeper keep                   Keep the backlight on until interrupted
 
-    Flags:
-      --bolt                               Include the experimental Bolt matcher
+    Matches Logitech Unifying receivers. Bolt support is present but alpha quality
+    (verified via protocol inference, not on real hardware).
     """)
 }
 
@@ -66,7 +66,6 @@ func writeEnabled(_ enabled: Bool, level: UInt8?, mode: UInt8?, with session: HI
 }
 
 let arguments = Array(CommandLine.arguments.dropFirst())
-let includeBolt = arguments.contains("--bolt")
 let nonFlagArguments = arguments.filter { !$0.hasPrefix("--") }
 
 guard let command = nonFlagArguments.first else {
@@ -76,7 +75,7 @@ guard let command = nonFlagArguments.first else {
 
 let target: HIDReceiverTarget
 do {
-  target = try HIDReceiverService.firstMatchedDevice(includeExperimentalBolt: includeBolt)
+  target = try HIDReceiverService.firstMatchedDevice()
 } catch {
   fputs("Failed to find a matched Logitech receiver: \(error.localizedDescription)\n", stderr)
   exit(1)
@@ -87,7 +86,8 @@ if command == "keep" {
   let snapshot = target.match.snapshot
   let intervalSeconds = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds)
 
-  print("Keeping backlight on via \(target.match.matcher.kind.displayName) receiver.")
+  let alphaSuffix = target.match.matcher.experimental ? " (alpha)" : ""
+  print("Keeping backlight on via \(target.match.matcher.kind.displayName) receiver\(alphaSuffix).")
   print("Writing keep-alive every \(Int(intervalSeconds))s. Press Ctrl-C to stop.")
 
   signal(SIGINT, SIG_IGN)
@@ -103,8 +103,7 @@ if command == "keep" {
       do {
         try receiverService.sendOutputReport(
           KeepAliveProtocol.onSignal,
-          to: snapshot,
-          includeExperimentalBolt: includeBolt
+          to: snapshot
         )
       } catch {
         fputs("Write failed: \(error.localizedDescription)\n", stderr)

@@ -118,7 +118,5 @@ public enum ReceiverCatalog {
     experimental: true
   )
 
-  public static func enabledMatchers(includeExperimentalBolt: Bool) -> [ReceiverMatcher] {
-    includeExperimentalBolt ? [unifying, bolt] : [unifying]
-  }
+  public static let allMatchers: [ReceiverMatcher] = [unifying, bolt]
 }

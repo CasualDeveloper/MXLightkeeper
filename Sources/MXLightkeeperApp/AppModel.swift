@@ -27,7 +27,6 @@ final class AppModel {
 
   private(set) var isEnabled: Bool
   private(set) var launchAtLogin: Bool
-  private(set) var experimentalBoltEnabled: Bool
 
   var status: AppStatus
   var activeReceiver: ReceiverSnapshot?
@@ -50,7 +49,6 @@ final class AppModel {
     let settings = Self.loadSettings(from: userDefaults)
     isEnabled = settings.isEnabled
     launchAtLogin = settings.launchAtLogin
-    experimentalBoltEnabled = settings.enableExperimentalBolt
     status = settings.isEnabled ? .waiting : .disabled
 
     refreshReceivers()
@@ -76,8 +74,7 @@ final class AppModel {
   var settingsSnapshot: MXLightkeeperSettings {
     MXLightkeeperSettings(
       isEnabled: isEnabled,
-      launchAtLogin: launchAtLogin,
-      enableExperimentalBolt: experimentalBoltEnabled
+      launchAtLogin: launchAtLogin
     )
   }
 
@@ -85,7 +82,16 @@ final class AppModel {
     guard let keyboardName, !keyboardName.isEmpty else {
       return nil
     }
-    return keyboardName
+    return isKeyboardAlpha(keyboardName) ? "\(keyboardName) (alpha)" : keyboardName
+  }
+
+  private func isKeyboardAlpha(_ name: String) -> Bool {
+    // Only "MX Keys for Mac" has been verified end-to-end on real hardware.
+    // Everything else — MX Keys S, MX Keys Mini, original MX Keys, etc. —
+    // runs against an unverified code path even though the HID++ BACKLIGHT2
+    // protocol family should cover them. Flag them as alpha until confirmed.
+    let verified: Set<String> = ["MX Keys for Mac"]
+    return !verified.contains(name)
   }
 
   var receiverLabel: String {
@@ -93,7 +99,8 @@ final class AppModel {
       return "No receiver connected"
     }
 
-    return "\(activeMatch.matcher.kind.displayName) receiver"
+    let suffix = activeMatch.matcher.experimental ? " (alpha)" : ""
+    return "\(activeMatch.matcher.kind.displayName) receiver\(suffix)"
   }
 
   var batteryLabel: String? {
@@ -151,11 +158,10 @@ final class AppModel {
   }
 
   var matcherSummary: String {
-    ReceiverCatalog
-      .enabledMatchers(includeExperimentalBolt: experimentalBoltEnabled)
+    ReceiverCatalog.allMatchers
       .map { matcher in
-        let suffix = matcher.experimental ? " (experimental)" : ""
-        return "\(matcher.kind.displayName) \(suffix)"
+        let suffix = matcher.experimental ? " (alpha)" : ""
+        return "\(matcher.kind.displayName)\(suffix)"
       }
       .joined(separator: ", ")
   }
@@ -202,16 +208,9 @@ final class AppModel {
     }
   }
 
-  func setExperimentalBoltEnabled(_ enabled: Bool) {
-    experimentalBoltEnabled = enabled
-    persistSettings()
-    logger.info("Experimental Bolt changed to \(enabled, privacy: .public)")
-    refreshReceivers()
-  }
-
   func refreshReceivers() {
     do {
-      availableReceivers = try receiverService.listReceivers(includeExperimentalBolt: experimentalBoltEnabled)
+      availableReceivers = try receiverService.listReceivers()
       if let firstMatch = availableReceivers.first {
         markReceiverActive(firstMatch)
         if isEnabled {
@@ -244,7 +243,7 @@ final class AppModel {
     }
 
     do {
-      let target = try HIDReceiverService.firstMatchedDevice(includeExperimentalBolt: experimentalBoltEnabled)
+      let target = try HIDReceiverService.firstMatchedDevice()
       guard target.match.snapshot == activeReceiver else {
         return
       }
@@ -321,7 +320,6 @@ final class AppModel {
     }
 
     let receiverService = receiverService
-    let includeExperimentalBolt = experimentalBoltEnabled
 
     isRunningDebugAction = true
     lastErrorMessage = nil
@@ -331,8 +329,7 @@ final class AppModel {
         for step in steps {
           try receiverService.sendOutputReport(
             step.payload,
-            to: activeReceiver,
-            includeExperimentalBolt: includeExperimentalBolt
+            to: activeReceiver
           )
 
           if step.delayAfterMilliseconds > 0 {
@@ -377,9 +374,7 @@ final class AppModel {
 
   private func discoverBatteryStatus() {
     do {
-      let target = try HIDReceiverService.firstMatchedDevice(
-        includeExperimentalBolt: experimentalBoltEnabled
-      )
+      let target = try HIDReceiverService.firstMatchedDevice()
       let session = try HIDPPProbeSession(target: target)
       defer { session.close() }
 
@@ -424,9 +419,7 @@ final class AppModel {
 
   private func discoverKeyboardName() {
     do {
-      let target = try HIDReceiverService.firstMatchedDevice(
-        includeExperimentalBolt: experimentalBoltEnabled
-      )
+      let target = try HIDReceiverService.firstMatchedDevice()
       let session = try HIDPPProbeSession(target: target)
       defer { session.close() }
 

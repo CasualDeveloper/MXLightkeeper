@@ -1,8 +1,13 @@
 import MXLightkeeperCore
 import Testing
 
-@Test func shippingMatchersExcludeExperimentalBoltByDefault() {
-  #expect(ReceiverCatalog.enabledMatchers(includeExperimentalBolt: false) == [ReceiverCatalog.unifying])
+@Test func shippingMatchersIncludeUnifyingAndBolt() {
+  #expect(ReceiverCatalog.allMatchers == [ReceiverCatalog.unifying, ReceiverCatalog.bolt])
+}
+
+@Test func boltMatcherIsMarkedExperimental() {
+  #expect(ReceiverCatalog.bolt.experimental)
+  #expect(!ReceiverCatalog.unifying.experimental)
 }
 
 @Test func matcherRequiresExactVendorProductUsagePageAndUsage() {

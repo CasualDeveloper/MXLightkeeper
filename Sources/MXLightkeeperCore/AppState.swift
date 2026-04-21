@@ -74,15 +74,12 @@ public enum AppStatusReducer {
 public struct MXLightkeeperSettings: Codable, Equatable, Sendable {
   public var isEnabled: Bool
   public var launchAtLogin: Bool
-  public var enableExperimentalBolt: Bool
 
   public init(
     isEnabled: Bool = true,
-    launchAtLogin: Bool = false,
-    enableExperimentalBolt: Bool = false
+    launchAtLogin: Bool = false
   ) {
     self.isEnabled = isEnabled
     self.launchAtLogin = launchAtLogin
-    self.enableExperimentalBolt = enableExperimentalBolt
   }
 }

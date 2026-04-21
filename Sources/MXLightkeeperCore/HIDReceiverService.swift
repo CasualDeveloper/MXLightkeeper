@@ -42,44 +42,38 @@ public struct HIDReceiverTarget {
 }
 
 public protocol ReceiverEnumerating: Sendable {
-  func listReceivers(includeExperimentalBolt: Bool) throws -> [HIDReceiverMatch]
+  func listReceivers() throws -> [HIDReceiverMatch]
 }
 
 public protocol ReceiverWriting: Sendable {
   func sendOutputReport(
     _ payload: Data,
-    to snapshot: ReceiverSnapshot,
-    includeExperimentalBolt: Bool
+    to snapshot: ReceiverSnapshot
   ) throws
 }
 
 public struct HIDReceiverService: ReceiverEnumerating, ReceiverWriting {
   public init() {}
 
-  private static func matchingDictionaries(includeExperimentalBolt: Bool) -> [[String: Any]] {
-    ReceiverCatalog
-      .enabledMatchers(includeExperimentalBolt: includeExperimentalBolt)
-      .map { matcher in
-        [
-          kIOHIDVendorIDKey: matcher.vendorID,
-          kIOHIDProductIDKey: matcher.productID,
-          kIOHIDPrimaryUsagePageKey: matcher.usagePage,
-          kIOHIDPrimaryUsageKey: matcher.usage,
-        ]
-      }
+  private static func matchingDictionaries() -> [[String: Any]] {
+    ReceiverCatalog.allMatchers.map { matcher in
+      [
+        kIOHIDVendorIDKey: matcher.vendorID,
+        kIOHIDProductIDKey: matcher.productID,
+        kIOHIDPrimaryUsagePageKey: matcher.usagePage,
+        kIOHIDPrimaryUsageKey: matcher.usage,
+      ]
+    }
   }
 
-  private static func configureManager(
-    _ manager: IOHIDManager,
-    includeExperimentalBolt: Bool
-  ) {
-    let matchingArray = matchingDictionaries(includeExperimentalBolt: includeExperimentalBolt)
+  private static func configureManager(_ manager: IOHIDManager) {
+    let matchingArray = matchingDictionaries()
     IOHIDManagerSetDeviceMatchingMultiple(manager, matchingArray as CFArray)
   }
 
-  public static func firstMatchedDevice(includeExperimentalBolt: Bool) throws -> HIDReceiverTarget {
+  public static func firstMatchedDevice() throws -> HIDReceiverTarget {
     let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-    configureManager(manager, includeExperimentalBolt: includeExperimentalBolt)
+    configureManager(manager)
 
     let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     guard openResult == kIOReturnSuccess else {
@@ -91,14 +85,12 @@ public struct HIDReceiverService: ReceiverEnumerating, ReceiverWriting {
       throw HIDReceiverServiceError.deviceOpenFailed(kIOReturnNotFound)
     }
 
-    let matchers = ReceiverCatalog.enabledMatchers(includeExperimentalBolt: includeExperimentalBolt)
-
     let matches = devices.compactMap { device -> HIDReceiverTarget? in
       guard let snapshot = snapshot(for: device) else {
         return nil
       }
 
-      guard let matcher = matchers.first(where: { $0.matches(snapshot) }) else {
+      guard let matcher = ReceiverCatalog.allMatchers.first(where: { $0.matches(snapshot) }) else {
         return nil
       }
 
@@ -122,9 +114,9 @@ public struct HIDReceiverService: ReceiverEnumerating, ReceiverWriting {
     return firstMatch
   }
 
-  public func listReceivers(includeExperimentalBolt: Bool) throws -> [HIDReceiverMatch] {
+  public func listReceivers() throws -> [HIDReceiverMatch] {
     let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-    Self.configureManager(manager, includeExperimentalBolt: includeExperimentalBolt)
+    Self.configureManager(manager)
 
     let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     guard openResult == kIOReturnSuccess else {
@@ -136,14 +128,12 @@ public struct HIDReceiverService: ReceiverEnumerating, ReceiverWriting {
       return []
     }
 
-    let matchers = ReceiverCatalog.enabledMatchers(includeExperimentalBolt: includeExperimentalBolt)
-
     return devices.compactMap { device in
       guard let snapshot = Self.snapshot(for: device) else {
         return nil
       }
 
-      guard let matcher = matchers.first(where: { $0.matches(snapshot) }) else {
+      guard let matcher = ReceiverCatalog.allMatchers.first(where: { $0.matches(snapshot) }) else {
         return nil
       }
 
@@ -160,15 +150,14 @@ public struct HIDReceiverService: ReceiverEnumerating, ReceiverWriting {
 
   public func sendOutputReport(
     _ payload: Data,
-    to snapshot: ReceiverSnapshot,
-    includeExperimentalBolt: Bool
+    to snapshot: ReceiverSnapshot
   ) throws {
     guard !payload.isEmpty else {
       throw HIDReceiverServiceError.unsupportedPayload
     }
 
     let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-    Self.configureManager(manager, includeExperimentalBolt: includeExperimentalBolt)
+    Self.configureManager(manager)
 
     let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     guard openResult == kIOReturnSuccess else {
@@ -180,8 +169,7 @@ public struct HIDReceiverService: ReceiverEnumerating, ReceiverWriting {
       throw HIDReceiverServiceError.deviceOpenFailed(kIOReturnNotFound)
     }
 
-    let matchers = ReceiverCatalog.enabledMatchers(includeExperimentalBolt: includeExperimentalBolt)
-    guard matchers.contains(where: { $0.matches(snapshot) }) else {
+    guard ReceiverCatalog.allMatchers.contains(where: { $0.matches(snapshot) }) else {
       throw HIDReceiverServiceError.deviceOpenFailed(kIOReturnNotFound)
     }
 
