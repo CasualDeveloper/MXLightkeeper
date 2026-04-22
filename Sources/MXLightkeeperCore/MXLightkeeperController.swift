@@ -151,13 +151,12 @@ public struct MXLightkeeperController: Sendable {
   }
 
   public func refreshKeepAlive(matching snapshot: ReceiverSnapshot) throws {
-    try withSession(matching: snapshot) { _, session in
-      let current = try readCurrentState(with: session)
-      _ = try session.sendRequest(
-        Backlight2Codec.keepAliveRequest(from: current),
-        timeout: probeTimeoutSeconds
-      )
-    }
+    // The visible keep-awake behavior still comes from the legacy Backlighter
+    // pulse pair on the reference hardware: send "off", wait briefly, then
+    // send "on". A single onSignal is not sufficient to wake the LEDs back up.
+    try sendRawOutputReport(KeepAliveProtocol.offSignal, to: snapshot)
+    Thread.sleep(forTimeInterval: TimeInterval(KeepAliveProtocol.pulseDelayMilliseconds) / 1_000)
+    try sendRawOutputReport(KeepAliveProtocol.onSignal, to: snapshot)
   }
 
   private func resolveTarget(matching snapshot: ReceiverSnapshot?) throws -> HIDReceiverTarget {
