@@ -125,7 +125,7 @@ Both are read every 60 seconds in a background task that runs regardless of the 
 
 ## TCC and the vendor-specific interface
 
-`IOHIDDeviceRegisterInputReportCallback` on the Logitech Unifying receiver's vendor-specific HID interface (usage page `0xFF00`) does **not** trigger macOS's Input Monitoring permission prompt. Verified empirically on macOS 26 by shipping a release build that registers the callback from the app's own process and observing no prompt.
+`IOHIDDeviceRegisterInputReportCallback` on the Logitech Unifying receiver's vendor-specific HID interface (usage page `0xFF00`) does **not** trigger macOS's Input Monitoring permission prompt. Verified empirically on macOS 26 by shipping a release build that registers the callback from the app's own process and observing no prompt. macOS 15 Sequoia support is now targeted by the package and bundle settings, but should be treated as `(alpha)` until this same TCC behavior is validated on a real Sequoia system.
 
 Two things must be true for this to hold:
 

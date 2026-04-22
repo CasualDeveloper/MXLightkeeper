@@ -8,13 +8,24 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        runner:
+          - macos-15
+          - macos-latest
+
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select latest stable Xcode
+      - name: Select Xcode 16.4 on macOS 15
+        if: matrix.runner == 'macos-15'
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+
+      - name: Select default Xcode on latest macOS
+        if: matrix.runner == 'macos-latest'
         run: sudo xcode-select -s /Applications/Xcode.app
 
       - name: Show toolchain

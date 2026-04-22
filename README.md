@@ -43,11 +43,11 @@ Only one MXLightkeeper process can own the long-running keep-alive loop at a tim
 
 ## Requirements
 
-- macOS 26+
+- macOS 15+
 - A Logitech Unifying (`0x046d:0xc52b`) or Bolt (`0x046d:0xc548`, alpha) receiver paired with an MX Keys family keyboard
-- To build from source: Xcode 26.4+ / Swift 6.3+
+- To build from source: Xcode 16.4+ / Swift 6+
 
-Only "MX Keys for Mac" on Unifying has been end-to-end verified. Other MX Keys variants and Bolt receiver paths are enabled, but shown as `(alpha)` until confirmed on real hardware.
+Only "MX Keys for Mac" on Unifying has been end-to-end verified. Other MX Keys variants, Bolt receiver paths, and macOS 15 Sequoia support are enabled, but shown as `(alpha)` until confirmed on real hardware.
 
 ## How it works
 
