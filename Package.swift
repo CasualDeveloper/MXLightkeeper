@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
   name: "MXLightkeeper",
+  defaultLocalization: "en",
   platforms: [
     .macOS("15.0"),
   ],
@@ -27,7 +28,10 @@ let package = Package(
     ),
     .executableTarget(
       name: "MXLightkeeperApp",
-      dependencies: ["MXLightkeeperCore"]
+      dependencies: ["MXLightkeeperCore"],
+      resources: [
+        .process("Resources"),
+      ]
     ),
     .executableTarget(
       name: "mxlightkeeper",
@@ -36,6 +40,10 @@ let package = Package(
     .testTarget(
       name: "MXLightkeeperCoreTests",
       dependencies: ["MXLightkeeperCore"]
+    ),
+    .testTarget(
+      name: "MXLightkeeperAppTests",
+      dependencies: ["MXLightkeeperApp"]
     ),
   ]
 )

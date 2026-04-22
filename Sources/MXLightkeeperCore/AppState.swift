@@ -32,6 +32,19 @@ public enum AppStatus: String, CaseIterable, Sendable {
     }
   }
 
+  public var subtitleRemainder: String {
+    switch self {
+    case .active:
+      return "stays on"
+    case .disabled:
+      return "turns off automatically"
+    case .waiting:
+      return "looking for a Logitech receiver"
+    case .degraded:
+      return "trouble reaching the receiver"
+    }
+  }
+
   public var systemImageName: String {
     switch self {
     case .disabled:

@@ -1,0 +1,515 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "accessibility.app_status" : {
+      "comment" : "Accessibility label for the app header with title and status",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper، %@، %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@, %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@, %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@, %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@, %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@, %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper，%@，%@" } }
+      }
+    },
+    "accessibility.battery_prefix" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Batterie" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Battery" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Batería" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Batterie" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैटरी" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Bateria" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "电池" } }
+      }
+    },
+    "accessibility.battery_value" : {
+      "comment" : "Accessibility label for the battery row",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "البطارية، %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Batterie, %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Battery, %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Batería, %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Batterie, %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैटरी, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Bateria, %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "电池，%@" } }
+      }
+    },
+    "accessibility.keyboard_prefix" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tastatur" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keyboard" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Teclado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Clavier" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कीबोर्ड" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Teclado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "键盘" } }
+      }
+    },
+    "accessibility.keyboard_value" : {
+      "comment" : "Accessibility label for the keyboard row",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لوحة المفاتيح، %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tastatur, %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keyboard, %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Teclado, %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Clavier, %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कीबोर्ड, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Teclado, %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "键盘，%@" } }
+      }
+    },
+    "accessibility.menu_bar_icon" : {
+      "comment" : "Accessibility label for the menu bar icon",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper، الإضاءة الخلفية %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, Hintergrundbeleuchtung %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, backlight %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, retroiluminación %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, rétroéclairage %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, बैकलाइट %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, luz de fundo %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper，背光%@" } }
+      }
+    },
+    "accessibility.receiver_prefix" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Empfänger" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Receiver" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Receptor" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Récepteur" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "रिसीवर" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Receptor" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接收器" } }
+      }
+    },
+    "accessibility.receiver_value" : {
+      "comment" : "Accessibility label for the receiver row",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المستقبل، %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Empfänger, %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Receiver, %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Receptor, %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Récepteur, %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "रिसीवर, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Receptor, %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接收器，%@" } }
+      }
+    },
+    "action.quit" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إنهاء" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Beenden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quit" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Salir" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Quitter" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बंद करें" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Sair" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出" } }
+      }
+    },
+    "app.name" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper" } }
+      }
+    },
+    "battery.accessibility.charging" : {
+      "comment" : "Accessibility battery label when charging",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld بالمئة، قيد الشحن" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Prozent, wird geladen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld percent, charging" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld por ciento, cargando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld pour cent, en charge" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld प्रतिशत, चार्ज हो रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld por cento, carregando" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%，正在充电" } }
+      }
+    },
+    "battery.accessibility.percent" : {
+      "comment" : "Accessibility battery percentage label",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld بالمئة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Prozent" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld percent" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld por ciento" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld pour cent" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld प्रतिशत" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld por cento" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%" } }
+      }
+    },
+    "battery.charged" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مشحونة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Geladen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Charged" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Chargée" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "चार्ज हो चुकी" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Carregada" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已充满" } }
+      }
+    },
+    "battery.charging" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Lädt" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Charging" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "En charge" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "चार्ज हो रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Carregando" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在充电" } }
+      }
+    },
+    "battery.critical" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حرجة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kritisch" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Critical" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Crítica" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Critique" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "गंभीर" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Crítica" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "严重不足" } }
+      }
+    },
+    "battery.label.charging" : {
+      "comment" : "Battery label when charging",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · قيد الشحن" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · Lädt" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · Charging" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · Cargando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · En charge" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · चार्ज हो रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · Carregando" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%% · 正在充电" } }
+      }
+    },
+    "battery.label.percent" : {
+      "comment" : "Battery percentage label",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } }
+      }
+    },
+    "battery.percent_suffix" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Prozent" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "percent" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "por ciento" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "pour cent" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "प्रतिशत" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "por cento" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "百分比" } }
+      }
+    },
+    "common.alpha_suffix" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "(ألفا)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "(Alpha)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "(alpha)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "(alfa)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "(alpha)" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "(अल्फ़ा)" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "(alfa)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "（Alpha）" } }
+      }
+    },
+    "empty.no_receiver.message" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "وصّل مستقبل Unifying للبدء." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schließe deinen Unifying-Empfänger an, um zu beginnen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Plug in your Unifying receiver to get started." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conecta tu receptor Unifying para empezar." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Branchez votre récepteur Unifying pour commencer." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "शुरू करने के लिए अपना Unifying रिसीवर लगाएँ।" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Conecte seu receptor Unifying para começar." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请插入您的 Unifying 接收器以开始使用。" } }
+      }
+    },
+    "empty.no_receiver.title" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لم يتم العثور على مستقبل Logitech" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kein Logitech-Empfänger erkannt" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Logitech receiver detected" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se detectó ningún receptor Logitech" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun récepteur Logitech détecté" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कोई Logitech रिसीवर नहीं मिला" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Nenhum receptor Logitech detectado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未检测到 Logitech 接收器" } }
+      }
+    },
+    "keyboard.label.alpha" : {
+      "comment" : "Keyboard label for alpha-supported keyboards",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%@ %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%@%@" } }
+      }
+    },
+    "label.language" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "اللغة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sprache" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Idioma" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Langue" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "भाषा" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Idioma" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
+      }
+    },
+    "label.backlight" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Hintergrundbeleuchtung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Backlight" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Retroiluminación" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rétroéclairage" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैकलाइट" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Luz de fundo" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "背光" } }
+      }
+    },
+    "label.battery" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Batterie" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Battery" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Batería" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Batterie" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैटरी" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Bateria" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "电池" } }
+      }
+    },
+    "language.match_system" : {
+      "comment" : "Picker option that follows the macOS system language; always rendered in the system language",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مطابقة النظام" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Systemsprache" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Match System" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Seguir el sistema" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Suivre le système" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "सिस्टम के अनुसार" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Seguir o sistema" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统" } }
+      }
+    },
+    "label.launch_at_login" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "التشغيل عند تسجيل الدخول" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Beim Anmelden starten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Launch at login" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar al iniciar sesión" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lancer à l’ouverture de session" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "लॉगिन पर शुरू करें" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar ao entrar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录时启动" } }
+      }
+    },
+    "receiver.label" : {
+      "comment" : "Receiver label shown in the menu",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مستقبل %@ %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%@-Empfänger %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ receiver %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Receptor %@ %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Récepteur %@ %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%@ रिसीवर %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Receptor %@ %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%@ 接收器%@" } }
+      }
+    },
+    "receiver.none" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يوجد مستقبل متصل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kein Empfänger verbunden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No receiver connected" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay ningún receptor conectado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun récepteur connecté" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कोई रिसीवर कनेक्ट नहीं है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Nenhum receptor conectado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未连接接收器" } }
+      }
+    },
+    "receiver.suffix" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Empfänger" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "receiver" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "receptor" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "récepteur" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "रिसीवर" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "receptor" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接收器" } }
+      }
+    },
+    "status.subtitle.active" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "سيُبقي الإضاءة الخلفية قيد التشغيل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Hält die Hintergrundbeleuchtung aktiv" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Will keep backlight on" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantendrá la retroiluminación activa" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Maintiendra le rétroéclairage activé" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैकलाइट चालू रखेगा" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Manterá a luz de fundo ligada" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将保持背光开启" } }
+      }
+    },
+    "status.subtitle.degraded" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر العثور على مستقبل متوافق" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kein kompatibler Empfänger gefunden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cannot find a compatible receiver" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se puede encontrar un receptor compatible" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible de trouver un récepteur compatible" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कोई संगत रिसीवर नहीं मिल रहा" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível encontrar um receptor compatível" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "找不到兼容的接收器" } }
+      }
+    },
+    "status.subtitle.disabled" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "سيسمح للوحة المفاتيح بإدارة الإضاءة الخلفية تلقائيًا" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Überlässt der Tastatur die Beleuchtung automatisch" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Will let keyboard manage backlight automatically" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dejará que el teclado gestione automáticamente la retroiluminación" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Laissera le clavier gérer automatiquement le rétroéclairage" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कीबोर्ड को बैकलाइट अपने आप प्रबंधित करने देगा" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Deixará o teclado gerenciar automaticamente a luz de fundo" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将由键盘自动管理背光" } }
+      }
+    },
+    "status.subtitle.waiting" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يبحث عن مستقبل متوافق" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sucht einen kompatiblen Empfänger" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Looking for a compatible receiver" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscando un receptor compatible" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Recherche d’un récepteur compatible" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "संगत रिसीवर खोजा जा रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Procurando um receptor compatível" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在查找兼容的接收器" } }
+      }
+    },
+    "status.title.active" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تشغيل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ein" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Activé" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "चालू" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ligado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开启" } }
+      }
+    },
+    "status.title.degraded" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إعادة الاتصال" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wird erneut verbunden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reconnecting" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reconectando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Reconnexion" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "फिर से कनेक्ट हो रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Reconectando" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重新连接中" } }
+      }
+    },
+    "status.title.disabled" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إيقاف" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aus" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Off" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desactivado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Désactivé" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बंद" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Desligado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关闭" } }
+      }
+    },
+    "status.title.waiting" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "بانتظار" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Warten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esperando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "En attente" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "प्रतीक्षा में" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aguardando" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "等待中" } }
+      }
+    },
+    "toggle.keep_backlight_on" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إبقاء الإضاءة الخلفية قيد التشغيل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Hintergrundbeleuchtung eingeschaltet lassen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep backlight on" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantener la retroiluminación encendida" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Garder le rétroéclairage activé" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैकलाइट चालू रखें" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Manter a luz de fundo ligada" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保持背光开启" } }
+      }
+    },
+    "tooltip.battery_status" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حالة البطارية" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Batteriestatus" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Battery status" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Estado de la batería" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "État de la batterie" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैटरी की स्थिति" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Status da bateria" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "电池状态" } }
+      }
+    },
+    "tooltip.battery_updated" : {
+      "comment" : "Tooltip showing when battery info was last refreshed",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم التحديث %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktualisiert %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Updated %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizado %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mis à jour %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%@ अपडेट किया गया" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Atualizado %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更新于%@" } }
+      }
+    },
+    "tooltip.updated_prefix" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تم التحديث" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktualisiert" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Updated" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mis à jour" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "अपडेट किया गया" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Atualizado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更新于" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

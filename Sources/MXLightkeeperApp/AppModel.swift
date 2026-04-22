@@ -91,7 +91,7 @@ final class AppModel {
     guard let keyboardName, !keyboardName.isEmpty else {
       return nil
     }
-    return isKeyboardAlpha(keyboardName) ? "\(keyboardName) (alpha)" : keyboardName
+    return AppStrings.keyboardLabel(name: keyboardName, isAlpha: isKeyboardAlpha(keyboardName))
   }
 
   private func isKeyboardAlpha(_ name: String) -> Bool {
@@ -104,11 +104,10 @@ final class AppModel {
 
   var receiverLabel: String {
     guard let activeMatch else {
-      return "No receiver connected"
+      return AppStrings.noReceiverConnectedText
     }
 
-    let suffix = activeMatch.matcher.experimental ? " (alpha)" : ""
-    return "\(activeMatch.matcher.kind.displayName) receiver\(suffix)"
+    return AppStrings.receiverLabel(kind: activeMatch.matcher.kind.displayName, isAlpha: activeMatch.matcher.experimental)
   }
 
   var batteryLabel: String? {
@@ -118,13 +117,13 @@ final class AppModel {
 
     switch batteryStatus.powerStatus {
     case .chargingComplete:
-      return "Charged"
+      return AppStrings.chargedText
     case .recharging, .almostFull, .wiredCharging:
-      return "\(batteryStatus.dischargeLevel)% · Charging"
+      return AppStrings.batteryChargingLabel(level: Int(batteryStatus.dischargeLevel))
     case .discharging:
-      return "\(batteryStatus.dischargeLevel)%"
+      return AppStrings.batteryPercentLabel(level: Int(batteryStatus.dischargeLevel))
     case .critical:
-      return "Critical"
+      return AppStrings.criticalText
     case .invalidBattery, .thermalError, .unknown:
       return nil
     }
@@ -137,13 +136,13 @@ final class AppModel {
 
     switch batteryStatus.powerStatus {
     case .chargingComplete:
-      return "Charged"
+      return AppStrings.chargedText
     case .recharging, .almostFull, .wiredCharging:
-      return "\(batteryStatus.dischargeLevel) percent, charging"
+      return AppStrings.batteryAccessibilityCharging(level: Int(batteryStatus.dischargeLevel))
     case .discharging:
-      return "\(batteryStatus.dischargeLevel) percent"
+      return AppStrings.batteryAccessibilityPercent(level: Int(batteryStatus.dischargeLevel))
     case .critical:
-      return "Critical"
+      return AppStrings.criticalText
     case .invalidBattery, .thermalError, .unknown:
       return nil
     }

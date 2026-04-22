@@ -4,6 +4,8 @@ import SwiftUI
 struct MenuBarIcon: View {
   let status: AppStatus
 
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
   private var symbolName: String {
     switch status {
     case .active:
@@ -23,13 +25,23 @@ struct MenuBarIcon: View {
   }
 
   private var accessibilityDescription: String {
-    "MXLightkeeper, backlight \(status.title.lowercased())"
+    AppStrings.menuBarIconAccessibility(status)
   }
 
   var body: some View {
     Image(systemName: symbolName)
       .symbolRenderingMode(.monochrome)
-      .foregroundStyle(tint)
-      .accessibilityLabel(accessibilityDescription)
+      .contentTransition(.symbolEffect(.replace))
+    .foregroundStyle(tint)
+    .animation(iconTransition, value: status)
+    .accessibilityLabel(accessibilityDescription)
+  }
+
+  private var iconTransition: Animation? {
+    guard !reduceMotion else {
+      return nil
+    }
+
+    return .easeOut(duration: 0.18)
   }
 }
