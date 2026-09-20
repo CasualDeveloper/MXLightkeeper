@@ -5,6 +5,7 @@ import Foundation
 public enum HIDPPProbeError: Error, LocalizedError, Sendable {
   case receiverOpenFailed(IOReturn)
   case reportWriteFailed(IOReturn)
+  case featureCallFailed(request: HIDPPReport, response: HIDPPErrorReply)
   case noMatchingResponse
 
   public var errorDescription: String? {
@@ -13,6 +14,11 @@ public enum HIDPPProbeError: Error, LocalizedError, Sendable {
       return "Failed to open matched receiver: \(code)"
     case .reportWriteFailed(let code):
       return "Failed to write HID++ report: \(code)"
+    case .featureCallFailed(let request, let response):
+      let feature = String(format: "%02x", request.featureIndex)
+      let function = String(format: "%x", request.functionID)
+      let code = String(format: "%02x", response.code)
+      return "HID++ feature 0x\(feature) function 0x\(function) failed with error 0x\(code)"
     case .noMatchingResponse:
       return "No matching HID++ response arrived before the timeout"
     }
@@ -40,13 +46,19 @@ public final class HIDPPProbeSession {
 
   private let device: IOHIDDevice
   public let snapshot: ReceiverSnapshot
+  private let softwareIDAllocator: HIDPPSoftwareIDAllocator
   private let context: Context
   private let retainedContext: Unmanaged<Context>
   private var isClosed = false
 
-  public init(target: HIDReceiverTarget) throws {
+  public convenience init(target: HIDReceiverTarget) throws {
+    try self.init(target: target, softwareIDAllocator: HIDPPSoftwareIDAllocator())
+  }
+
+  init(target: HIDReceiverTarget, softwareIDAllocator: HIDPPSoftwareIDAllocator) throws {
     device = target.device
     snapshot = target.match.snapshot
+    self.softwareIDAllocator = softwareIDAllocator
 
     let openResult = IOHIDDeviceOpen(device, IOOptionBits(kIOHIDOptionsTypeNone))
     guard openResult == kIOReturnSuccess else {
@@ -95,13 +107,14 @@ public final class HIDPPProbeSession {
   ) throws -> HIDPPReport {
     context.reports.removeAll(keepingCapacity: true)
 
-    let payload = request.serializedData
+    let wireRequest = request.assigningSoftwareID(softwareIDAllocator.next())
+    let payload = wireRequest.serializedData
     let writeResult = payload.withUnsafeBytes { rawBuffer -> IOReturn in
       let pointer = rawBuffer.bindMemory(to: UInt8.self).baseAddress!
       return IOHIDDeviceSetReport(
         device,
         kIOHIDReportTypeOutput,
-        CFIndex(request.reportID),
+        CFIndex(wireRequest.reportID),
         pointer,
         payload.count
       )
@@ -114,17 +127,8 @@ public final class HIDPPProbeSession {
     let deadline = Date().addingTimeInterval(timeout)
     while Date() < deadline {
       RunLoop.main.run(mode: .default, before: deadline)
-      if let match = context.reports.first(where: { report in
-        report.deviceIndex == request.deviceIndex &&
-          report.featureIndex == request.featureIndex &&
-          report.functionID == request.functionID &&
-          report.softwareID == request.softwareID
-      }) {
+      if let match = try HIDPPResponseResolver.resolve(in: context.reports, to: wireRequest) {
         return match
-      }
-
-      if let errorReport = context.reports.first(where: { $0.isError && $0.softwareID == request.softwareID }) {
-        return errorReport
       }
     }
 
@@ -147,5 +151,22 @@ public final class HIDPPProbeSession {
     guard writeResult == kIOReturnSuccess else {
       throw HIDPPProbeError.reportWriteFailed(writeResult)
     }
+  }
+}
+
+enum HIDPPResponseResolver {
+  static func resolve(
+    in reports: [HIDPPReport],
+    to request: HIDPPReport
+  ) throws -> HIDPPReport? {
+    guard let response = reports.first(where: { $0.matchesResponse(to: request) }) else {
+      return nil
+    }
+
+    if let errorReply = response.errorReply {
+      throw HIDPPProbeError.featureCallFailed(request: request, response: errorReply)
+    }
+
+    return response
   }
 }

@@ -83,6 +83,20 @@ public struct Backlight2State: Equatable, Sendable {
   }
 }
 
+public enum Backlight2Expectation: Sendable, Equatable {
+  case enabled(Bool)
+  case manualLevel(UInt8)
+
+  public func isSatisfied(by state: Backlight2State) -> Bool {
+    switch self {
+    case .enabled(let expected):
+      return state.enabled == (expected ? 0x01 : 0x00)
+    case .manualLevel(let level):
+      return state.enabled == 0x01 && state.mode == 0x03 && state.level == level
+    }
+  }
+}
+
 public enum Backlight2Codec {
   public static let featureIndex: UInt8 = 0x0b
   public static let readFunctionID: UInt8 = 0x00
@@ -147,8 +161,9 @@ public enum Backlight2Codec {
     // BACKLIGHT2 write payload per Solaar hidpp20.py:
     //   enabled(B) options(B) 0xFF(B) level(B) dho(H LE) dhi(H LE) dpow(H LE)
     // = 10 bytes. The containing HID++ long report serializes to 20 bytes
-    // total with the remaining 6 trailing bytes zero-padded; MX Keys S
-    // requires the full 16-byte payload, which this padding produces.
+    // total with the remaining 6 trailing bytes zero-padded. This matches the
+    // historically documented MX Keys S frame shape; that hardware path is
+    // still alpha until verified on-device.
     return HIDPPReport(
       reportID: HIDPPReport.longReportID,
       deviceIndex: HIDPPDeviceIndex.receiverSlot1,

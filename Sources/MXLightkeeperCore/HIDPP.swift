@@ -62,6 +62,7 @@ public struct HIDPPReport: Sendable, Equatable {
   public let functionID: UInt8
   public let softwareID: UInt8
   public let parameters: [UInt8]
+  private let receivedData: Data?
 
   public init(
     reportID: UInt8,
@@ -77,6 +78,25 @@ public struct HIDPPReport: Sendable, Equatable {
     self.functionID = functionID
     self.softwareID = softwareID
     self.parameters = parameters
+    receivedData = nil
+  }
+
+  private init(
+    reportID: UInt8,
+    deviceIndex: UInt8,
+    featureIndex: UInt8,
+    functionID: UInt8,
+    softwareID: UInt8,
+    parameters: [UInt8],
+    receivedData: Data
+  ) {
+    self.reportID = reportID
+    self.deviceIndex = deviceIndex
+    self.featureIndex = featureIndex
+    self.functionID = functionID
+    self.softwareID = softwareID
+    self.parameters = parameters
+    self.receivedData = receivedData
   }
 
   public var packedFunctionAndSoftwareID: UInt8 {
@@ -110,6 +130,19 @@ public struct HIDPPReport: Sendable, Equatable {
     }
   }
 
+  public var rawData: Data {
+    receivedData ?? serializedData
+  }
+
+  public static func == (lhs: HIDPPReport, rhs: HIDPPReport) -> Bool {
+    lhs.reportID == rhs.reportID
+      && lhs.deviceIndex == rhs.deviceIndex
+      && lhs.featureIndex == rhs.featureIndex
+      && lhs.functionID == rhs.functionID
+      && lhs.softwareID == rhs.softwareID
+      && lhs.parameters == rhs.parameters
+  }
+
   public static func parse(_ data: Data) -> HIDPPReport? {
     guard let reportID = data.first else {
       return nil
@@ -117,7 +150,7 @@ public struct HIDPPReport: Sendable, Equatable {
 
     switch reportID {
     case shortReportID:
-      guard data.count >= shortSize else {
+      guard data.count == shortSize else {
         return nil
       }
       return HIDPPReport(
@@ -126,10 +159,11 @@ public struct HIDPPReport: Sendable, Equatable {
         featureIndex: data[2],
         functionID: data[3] >> 4,
         softwareID: data[3] & 0x0f,
-        parameters: Array(data[4..<shortSize])
+        parameters: Array(data[4..<shortSize]),
+        receivedData: data
       )
     case longReportID:
-      guard data.count >= longSize else {
+      guard data.count == longSize else {
         return nil
       }
       return HIDPPReport(
@@ -138,7 +172,8 @@ public struct HIDPPReport: Sendable, Equatable {
         featureIndex: data[2],
         functionID: data[3] >> 4,
         softwareID: data[3] & 0x0f,
-        parameters: Array(data[4..<longSize])
+        parameters: Array(data[4..<longSize]),
+        receivedData: data
       )
     default:
       return nil
@@ -149,8 +184,89 @@ public struct HIDPPReport: Sendable, Equatable {
     featureIndex == 0xff
   }
 
+  public var errorReply: HIDPPErrorReply? {
+    let bytes = rawData
+    guard isError, bytes.count >= Self.shortSize else {
+      return nil
+    }
+
+    return HIDPPErrorReply(
+      deviceIndex: bytes[1],
+      originalFeatureIndex: bytes[3],
+      originalPackedFunctionAndSoftwareID: bytes[4],
+      code: bytes[5],
+      rawData: bytes
+    )
+  }
+
+  func assigningSoftwareID(_ softwareID: UInt8) -> HIDPPReport {
+    HIDPPReport(
+      reportID: reportID,
+      deviceIndex: deviceIndex,
+      featureIndex: featureIndex,
+      functionID: functionID,
+      softwareID: softwareID,
+      parameters: parameters
+    )
+  }
+
+  func matchesResponse(to request: HIDPPReport) -> Bool {
+    guard deviceIndex == request.deviceIndex else {
+      return false
+    }
+
+    if let errorReply {
+      return errorReply.originalFeatureIndex == request.featureIndex
+        && errorReply.originalPackedFunctionAndSoftwareID == request.packedFunctionAndSoftwareID
+    }
+
+    return featureIndex == request.featureIndex
+      && packedFunctionAndSoftwareID == request.packedFunctionAndSoftwareID
+  }
+
   public var hexString: String {
-    serializedData.map { String(format: "%02x", $0) }.joined(separator: " ")
+    rawData.map { String(format: "%02x", $0) }.joined(separator: " ")
+  }
+}
+
+public struct HIDPPErrorReply: Sendable, Equatable {
+  public let deviceIndex: UInt8
+  public let originalFeatureIndex: UInt8
+  public let originalPackedFunctionAndSoftwareID: UInt8
+  public let code: UInt8
+  public let rawData: Data
+
+  public var originalFunctionID: UInt8 {
+    originalPackedFunctionAndSoftwareID >> 4
+  }
+
+  public var originalSoftwareID: UInt8 {
+    originalPackedFunctionAndSoftwareID & 0x0f
+  }
+}
+
+@MainActor
+final class HIDPPSoftwareIDAllocator {
+  // Avoid zero (notifications), the raw pulse's 0x0f, and software IDs pinned
+  // by the reviewed Solaar implementation as used by other common tools.
+  static let defaultPool: [UInt8] = [
+    0x01, 0x02, 0x03, 0x04, 0x05,
+    0x06, 0x08, 0x09, 0x0c, 0x0e,
+  ]
+
+  private let pool: [UInt8]
+  private var index = 0
+
+  init(pool: [UInt8] = defaultPool) {
+    precondition(!pool.isEmpty)
+    precondition(pool.allSatisfy { (1...15).contains($0) })
+    self.pool = pool
+  }
+
+  func next() -> UInt8 {
+    let value = pool[index]
+    index = (index + 1) % pool.count
+    return value
   }
 }
 
@@ -160,6 +276,8 @@ public enum HIDPPDeviceIndex {
 }
 
 public enum HIDPPSoftwareID {
+  // Request builders use this template value. HIDPPProbeSession replaces it
+  // with the next rotating software ID immediately before transmission.
   public static let mxLightkeeper: UInt8 = 0x01
 }
 

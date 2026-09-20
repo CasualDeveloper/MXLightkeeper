@@ -4,6 +4,7 @@ public enum MXLightkeeperControllerError: Error, LocalizedError, Sendable, Equat
   case receiverChanged
   case stateDecodeFailed
   case invalidManualLevel(UInt8)
+  case readbackMismatch(expected: Backlight2Expectation, observed: Backlight2State)
 
   public var errorDescription: String? {
     switch self {
@@ -13,6 +14,8 @@ public enum MXLightkeeperControllerError: Error, LocalizedError, Sendable, Equat
       return "Failed to decode the current BACKLIGHT2 state"
     case .invalidManualLevel(let level):
       return "Invalid manual brightness level '\(level)'. Expected a value from 1 to 7."
+    case .readbackMismatch(let expected, let observed):
+      return "BACKLIGHT2 readback did not match \(expected.summary); observed \(observed.summary)"
     }
   }
 }
@@ -43,12 +46,14 @@ public struct MXLightkeeperController: Sendable {
   private let receiverEnumerator: any ReceiverEnumerating
   private let receiverWriter: any ReceiverWriting
   private let pulseDelay: @MainActor @Sendable () -> Void
+  private let softwareIDAllocator: HIDPPSoftwareIDAllocator
 
   public init(probeTimeoutSeconds: TimeInterval = 1.0) {
     let receiverService = HIDReceiverService()
     self.probeTimeoutSeconds = probeTimeoutSeconds
     receiverEnumerator = receiverService
     receiverWriter = receiverService
+    softwareIDAllocator = HIDPPSoftwareIDAllocator()
     pulseDelay = {
       Thread.sleep(forTimeInterval: TimeInterval(KeepAliveProtocol.pulseDelayMilliseconds) / 1_000)
     }
@@ -58,12 +63,14 @@ public struct MXLightkeeperController: Sendable {
     probeTimeoutSeconds: TimeInterval = 1.0,
     receiverEnumerator: any ReceiverEnumerating,
     receiverWriter: any ReceiverWriting,
-    pulseDelay: @escaping @MainActor @Sendable () -> Void
+    pulseDelay: @escaping @MainActor @Sendable () -> Void,
+    softwareIDAllocator: HIDPPSoftwareIDAllocator = HIDPPSoftwareIDAllocator()
   ) {
     self.probeTimeoutSeconds = probeTimeoutSeconds
     self.receiverEnumerator = receiverEnumerator
     self.receiverWriter = receiverWriter
     self.pulseDelay = pulseDelay
+    self.softwareIDAllocator = softwareIDAllocator
   }
 
   public func listReceivers() throws -> [HIDReceiverMatch] {
@@ -132,7 +139,8 @@ public struct MXLightkeeperController: Sendable {
         timeout: probeTimeoutSeconds
       )
 
-      return try readCurrentState(with: session)
+      let observed = try readCurrentState(with: session)
+      return try validatedReadback(observed, expected: .enabled(enabled))
     }
   }
 
@@ -158,7 +166,8 @@ public struct MXLightkeeperController: Sendable {
         timeout: probeTimeoutSeconds
       )
 
-      return try readCurrentState(with: session)
+      let observed = try readCurrentState(with: session)
+      return try validatedReadback(observed, expected: .manualLevel(level))
     }
   }
 
@@ -176,9 +185,8 @@ public struct MXLightkeeperController: Sendable {
   }
 
   public func refreshKeepAlive(matching snapshot: ReceiverSnapshot) throws {
-    // The visible keep-awake behavior still comes from the legacy Backlighter
-    // pulse pair on the reference hardware: send "off", wait briefly, then
-    // send "on". A single onSignal is not sufficient to wake the LEDs back up.
+    // Keep-alive uses the legacy Backlighter pulse pair: send "off", wait
+    // briefly, then send "on". Transport success does not prove visible light.
     do {
       try sendRawOutputReport(KeepAliveProtocol.offSignal, to: snapshot)
     } catch {
@@ -213,7 +221,7 @@ public struct MXLightkeeperController: Sendable {
     _ work: (HIDReceiverTarget, HIDPPProbeSession) throws -> T
   ) throws -> T {
     let target = try resolveTarget(matching: snapshot)
-    let session = try HIDPPProbeSession(target: target)
+    let session = try HIDPPProbeSession(target: target, softwareIDAllocator: softwareIDAllocator)
     defer { session.close() }
     return try work(target, session)
   }
@@ -247,6 +255,16 @@ public struct MXLightkeeperController: Sendable {
       durationHandsIn: current.durationHandsIn,
       durationPowered: current.durationPowered
     )
+  }
+
+  func validatedReadback(
+    _ observed: Backlight2State,
+    expected: Backlight2Expectation
+  ) throws -> Backlight2State {
+    guard expected.isSatisfied(by: observed) else {
+      throw MXLightkeeperControllerError.readbackMismatch(expected: expected, observed: observed)
+    }
+    return observed
   }
 
   private func readKeyboardName(with session: HIDPPProbeSession) throws -> String? {
@@ -330,5 +348,16 @@ public struct MXLightkeeperController: Sendable {
     )
     let featureIndex = response.parameters.first ?? 0
     return featureIndex == 0 ? nil : featureIndex
+  }
+}
+
+private extension Backlight2Expectation {
+  var summary: String {
+    switch self {
+    case .enabled(let enabled):
+      return enabled ? "enabled backlight" : "disabled backlight"
+    case .manualLevel(let level):
+      return "manual brightness level \(level)"
+    }
   }
 }
