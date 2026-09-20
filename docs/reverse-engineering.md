@@ -1,6 +1,8 @@
 # Reverse-Engineering Notes
 
-How the Logitech MX Keys backlight control was pinned down for this port. Every claim below was verified on real hardware through the Unifying receiver's vendor-specific HID interface.
+How Logitech MX Keys backlight control was investigated for this port. These notes mix historical reference-device observations, protocol interpretation, and explicitly unverified support leads. They do not establish every operation on every listed device.
+
+The [system design](system-design.md#current-implementation) owns current runtime behavior. See [hardware evidence](development.md#hardware-evidence) for how to extend these notes. Original captures below do not carry a complete revision/OS/firmware record; preserve that evidence limit rather than treating them as fresh validation.
 
 ## Starting point
 
@@ -44,7 +46,7 @@ Sending `10 01 0b 1f 01 00 ff` reliably elicits `reportID 0x11` state packets. T
 - `08 06 04` — backlight on, brightness level 6
 - `08 07 04` — backlight on, brightness level 7
 
-So `10 01 0b 1f 01 00 ff` is a status query, not a setter.
+In these captures, `10 01 0b 1f 01 00 ff` elicited status rather than acting as the structured setter. That observation alone does not establish the visible effect of the full pulse sequence used by the current keeper.
 
 ## HID++ feature discovery
 
@@ -92,23 +94,25 @@ For write requests, the payload is:
 - `dhi`
 - `dpow`
 
-Solaar notes (`settings_templates.py:264`) that the MX Keys S requires a longer 16-byte payload:
+The original investigation referenced Solaar's `settings_templates.py` for a longer MX Keys S payload (the recorded line number was 264; this is not a pinned current-source reference):
 
 ```
 11 02 0c1a 000dff000b000b003c00000000000000
 ```
 
-Breakdown: `on/off | options | 0xFF | level | durations[6 × 2 bytes LE]`. The last 6 bytes (3 additional duration fields) are ignored by older MX Keys models but must be present for MX Keys S. `Backlight2Codec.writeRequest` produces exactly this: the 10 bytes of real data occupy the start of the long report's parameter region and `HIDPPReport.serializedData` zero-pads the rest of the 20-byte frame, so the MX Keys S extension format falls out naturally.
+The historical interpretation was `on/off | options | 0xFF | level | durations[6 × 2 bytes LE]`. In current source, `Backlight2Codec.writeRequest` supplies 10 data bytes and `HIDPPReport.serializedData` zero-pads the remaining 6 parameter bytes of the 20-byte report. Tests establish this serialization shape. They do not establish that those zero values or the fixed feature index work on MX Keys S hardware.
 
 Only "MX Keys for Mac" has been end-to-end verified on real hardware. Other keyboards ("MX Keys", "MX Keys Mini", "MX Keys S", "MX Keys S Combo") use the same code path but are flagged in the UI as "(alpha)" until confirmed.
 
 ## What the shipping app and CLI use
 
-Writing `BACKLIGHT2.enabled = 0x00` or `0x01` through the structured `BACKLIGHT2` write flips the real keyboard backlight state immediately on the MX Keys target of this port. Both frontends call the same `MXLightkeeperCore` controller, and the keep-alive loop re-sends the `enabled = 1` struct every 180 seconds while preserving the user's existing brightness level and mode.
+Both frontends call `MXLightkeeperCore`. The shipping keeper uses the legacy pulse pair, with a 50 ms gap, immediately and then every 180 seconds. The CLI's `read`, `on`, `off`, and `manual` commands use structured `BACKLIGHT2` operations. Current code fixes their feature index to `0x0b` and slot to `0x01`; the historical discovery map is not a dynamic capability guarantee.
 
-Only one process is allowed to own the long-running keep-alive loop at a time. `BacklightKeeper` creates a lock file under the user's Application Support directory and refuses to start if another MXLightkeeper process already owns that lock.
+An earlier observation recorded structured enabled writes visibly changing the reference keyboard's light. Commit `9bb0855` later restored raw pulses because structured writes did not visibly wake LEDs. Its verification note records build/test/bundle checks and leaves live hardware validation outstanding. The initial light/power conditions are not sufficiently recorded to resolve these observations. Preserve shipping behavior until a scoped hardware comparison establishes a replacement.
 
-Replaying the legacy Backlighter raw pulse (`10 01 0b 1f 00 00 ff` then `10 01 0b 1f 01 00 ff`) does not visibly change the light when the keyboard is already on. It behaves like a transient nudge, not a real setter.
+The intended ownership contract permits one long-running keeper per user. `BacklightKeeper` implements it with a lock file under Application Support. The current creation/stale-cleanup protocol has a concurrent-start race, described in the [system design](system-design.md#what-current-feedback-proves). This guard does not cover one-shot commands or debug pulses, and the keeper currently discards refresh errors.
+
+A historical replay of the legacy raw pulse (`10 01 0b 1f 00 00 ff` then `10 01 0b 1f 01 00 ff`) did not visibly change the light while it was already on. This observation does not answer whether the sequence wakes timed-out LEDs or maintains light across multiple refresh intervals.
 
 ## Bolt note
 
@@ -136,5 +140,7 @@ With both in place, features like `DEVICE_NAME` and `BATTERY_STATUS` can be read
 
 ## Discipline
 
-- Only add newly verified receiver IDs, usage pages, descriptor details, or report observations here.
-- Do not promote anecdotal community reports to "verified" without reproducing them.
+- Record the revision, hardware/OS, operation, initial conditions, duration where relevant, and observed result for new experiments. Mark unknown fields explicitly.
+- Keep external protocol interpretations and community leads labeled separately from reproduced observations.
+- A matching descriptor, serialized packet, successful write, decoded response, and visible light are different claims. State which one the evidence establishes.
+- Update current behavior in the system design when implementation changes; retain historical observations here with their scope.

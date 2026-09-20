@@ -8,3 +8,6 @@ dist/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 *.xcuserstate
+
+# Keep the repository's agent entrypoint despite global AGENTS.md ignores.
+!/AGENTS.md
