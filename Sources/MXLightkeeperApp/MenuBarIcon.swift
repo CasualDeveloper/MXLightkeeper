@@ -10,7 +10,7 @@ struct MenuBarIcon: View {
     switch status {
     case .active:
       return "light.max"
-    case .waiting, .degraded, .disabled:
+    case .waiting, .starting, .degraded, .disabled:
       return "light.min"
     }
   }
@@ -19,7 +19,7 @@ struct MenuBarIcon: View {
     switch status {
     case .degraded:
       return .orange
-    case .active, .waiting, .disabled:
+    case .active, .waiting, .starting, .disabled:
       return .primary
     }
   }

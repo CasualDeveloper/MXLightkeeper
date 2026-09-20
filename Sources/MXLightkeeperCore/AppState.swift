@@ -3,6 +3,7 @@ import Foundation
 public enum AppStatus: String, CaseIterable, Sendable {
   case disabled
   case waiting
+  case starting
   case active
   case degraded
 
@@ -12,6 +13,8 @@ public enum AppStatus: String, CaseIterable, Sendable {
       return "Off"
     case .waiting:
       return "Waiting"
+    case .starting:
+      return "Starting"
     case .active:
       return "On"
     case .degraded:
@@ -27,6 +30,8 @@ public enum AppStatus: String, CaseIterable, Sendable {
       return "Backlight turns off automatically"
     case .waiting:
       return "Looking for a Logitech receiver"
+    case .starting:
+      return "Preparing backlight keeper"
     case .degraded:
       return "Trouble reaching the receiver"
     }
@@ -40,6 +45,8 @@ public enum AppStatus: String, CaseIterable, Sendable {
       return "turns off automatically"
     case .waiting:
       return "looking for a Logitech receiver"
+    case .starting:
+      return "preparing backlight keeper"
     case .degraded:
       return "trouble reaching the receiver"
     }
@@ -50,6 +57,8 @@ public enum AppStatus: String, CaseIterable, Sendable {
     case .disabled:
       return "pause.circle"
     case .waiting:
+      return "clock.arrow.trianglehead.counterclockwise.rotate.90"
+    case .starting:
       return "clock.arrow.trianglehead.counterclockwise.rotate.90"
     case .active:
       return "sun.max.circle.fill"
@@ -78,7 +87,9 @@ public enum AppStatusReducer {
       return .waiting
     case .receiverMissing:
       return isDisabled ? .disabled : .waiting
-    case .receiverAcquired, .recovered:
+    case .receiverAcquired:
+      return isDisabled ? .disabled : .starting
+    case .recovered:
       return isDisabled ? .disabled : .active
     case .writeFailed:
       return isDisabled ? .disabled : .degraded
@@ -90,11 +101,22 @@ public struct MXLightkeeperSettings: Codable, Equatable, Sendable {
   public var isEnabled: Bool
   public var launchAtLogin: Bool
 
+  private enum CodingKeys: String, CodingKey {
+    case isEnabled
+    case launchAtLogin
+  }
+
   public init(
     isEnabled: Bool = true,
     launchAtLogin: Bool = false
   ) {
     self.isEnabled = isEnabled
     self.launchAtLogin = launchAtLogin
+  }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? false
+    launchAtLogin = try container.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? false
   }
 }

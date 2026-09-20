@@ -65,14 +65,14 @@
     "accessibility.menu_bar_icon" : {
       "comment" : "Accessibility label for the menu bar icon",
       "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper، الإضاءة الخلفية %@" } },
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, Hintergrundbeleuchtung %@" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, backlight %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, retroiluminación %@" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, rétroéclairage %@" } },
-        "hi" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, बैकलाइट %@" } },
-        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, luz de fundo %@" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper，背光%@" } }
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper، %@" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper, %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "MXLightkeeper，%@" } }
       }
     },
     "accessibility.receiver_prefix" : {
@@ -133,7 +133,7 @@
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld pour cent, en charge" } },
         "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld प्रतिशत, चार्ज हो रहा है" } },
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld por cento, carregando" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%，正在充电" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%，正在充电" } }
       }
     },
     "battery.accessibility.percent" : {
@@ -146,7 +146,7 @@
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld pour cent" } },
         "hi" : { "stringUnit" : { "state" : "translated", "value" : "%lld प्रतिशत" } },
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "%lld por cento" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld%%" } }
       }
     },
     "battery.charged" : {
@@ -379,14 +379,14 @@
     },
     "status.subtitle.degraded" : {
       "localizations" : {
-        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر العثور على مستقبل متوافق" } },
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kein kompatibler Empfänger gefunden" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cannot find a compatible receiver" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se puede encontrar un receptor compatible" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible de trouver un récepteur compatible" } },
-        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कोई संगत रिसीवर नहीं मिल रहा" } },
-        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível encontrar um receptor compatível" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "找不到兼容的接收器" } }
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تعذر إبقاء الإضاءة الخلفية قيد التشغيل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Hintergrundbeleuchtung kann nicht aktiv gehalten werden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cannot keep backlight on" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se puede mantener activa la retroiluminación" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible de maintenir le rétroéclairage activé" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैकलाइट को चालू नहीं रखा जा सकता" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível manter a luz de fundo ligada" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法保持背光开启" } }
       }
     },
     "status.subtitle.disabled" : {
@@ -411,6 +411,18 @@
         "hi" : { "stringUnit" : { "state" : "translated", "value" : "संगत रिसीवर खोजा जा रहा है" } },
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Procurando um receptor compatível" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在查找兼容的接收器" } }
+      }
+    },
+    "status.subtitle.starting" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تجهيز إبقاء الإضاءة الخلفية" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Hintergrundbeleuchtung wird vorbereitet" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Preparing backlight keeper" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparando el control de retroiluminación" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Préparation du maintien du rétroéclairage" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बैकलाइट नियंत्रण तैयार हो रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Preparando o controle da luz de fundo" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在准备背光保持功能" } }
       }
     },
     "status.title.active" : {
@@ -447,6 +459,18 @@
         "hi" : { "stringUnit" : { "state" : "translated", "value" : "बंद" } },
         "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Desligado" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关闭" } }
+      }
+    },
+    "status.title.starting" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "بدء التشغيل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Startet" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Starting" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Démarrage" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "शुरू हो रहा है" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Iniciando" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在启动" } }
       }
     },
     "status.title.waiting" : {

@@ -40,6 +40,7 @@ final class AppModel {
   var batteryLastUpdatedAt: Date?
   var isRunningDebugAction = false
   var retryAttempt = 0
+  var lastRefreshResult: KeepAliveRefreshResult?
 
   init(
     userDefaults: UserDefaults = .standard,
@@ -254,11 +255,17 @@ final class AppModel {
       return
     }
 
+    status = AppStatusReducer.reduce(from: status, event: .receiverAcquired)
+
     do {
-      let runtimeState = try controller.prepareRuntimeState(matching: activeReceiver)
+      let runtimeState = try controller.prepareRuntimeState(
+        matching: activeReceiver,
+        onRefresh: { [weak self] result in
+          self?.handleRefreshResult(result)
+        }
+      )
       try runtimeState.keeper.start()
       backlightKeeper = runtimeState.keeper
-      status = .active
       lastErrorMessage = nil
       logger.info("Backlight keeper started")
     } catch {
@@ -276,6 +283,22 @@ final class AppModel {
     backlightKeeper.stop()
     logger.info("Backlight keeper stopped")
     self.backlightKeeper = nil
+  }
+
+  private func handleRefreshResult(_ result: KeepAliveRefreshResult) {
+    lastRefreshResult = result
+
+    if result.isSuccess {
+      retryAttempt = 0
+      lastErrorMessage = nil
+      status = AppStatusReducer.reduce(from: status, event: .recovered)
+      logger.info("Backlight refresh completed")
+    } else {
+      markDegraded(result.failureDescription ?? "Backlight refresh did not complete")
+      logger.error(
+        "Backlight refresh failed after stage \(result.completedStage.rawValue, privacy: .public)"
+      )
+    }
   }
 
   #if DEBUG
@@ -318,6 +341,10 @@ final class AppModel {
   }
 
   private func runDebugSequence(named name: String, steps: [DebugSequenceStep]) {
+    guard !isRunningDebugAction else {
+      return
+    }
+
     guard let activeReceiver else {
       lastErrorMessage = "No matched receiver available for \(name.lowercased())"
       return
@@ -367,22 +394,27 @@ final class AppModel {
     keyboardName = nil
     batteryStatus = nil
     batteryLastUpdatedAt = nil
+    lastRefreshResult = nil
     lastErrorMessage = nil
     status = AppStatusReducer.reduce(from: status, event: .receiverMissing)
   }
 
   func markReceiverActive(_ match: HIDReceiverMatch) {
-    if activeReceiver != match.snapshot {
+    let receiverChanged = activeReceiver != match.snapshot
+    if receiverChanged {
       keyboardName = nil
       batteryStatus = nil
       batteryLastUpdatedAt = nil
+      lastRefreshResult = nil
     }
 
     activeReceiver = match.snapshot
     activeMatch = match
-    lastErrorMessage = nil
-    retryAttempt = 0
-    status = AppStatusReducer.reduce(from: status, event: .receiverAcquired)
+    if receiverChanged {
+      lastErrorMessage = nil
+      retryAttempt = 0
+      status = AppStatusReducer.reduce(from: status, event: .receiverAcquired)
+    }
   }
 
   private func refreshDeviceDetails() {
@@ -434,11 +466,17 @@ final class AppModel {
     userDefaults.set(encoded, forKey: DefaultsKey.settings)
   }
 
-  private static func loadSettings(from userDefaults: UserDefaults) -> MXLightkeeperSettings {
+  static func loadSettings(from userDefaults: UserDefaults) -> MXLightkeeperSettings {
     guard let data = userDefaults.data(forKey: DefaultsKey.settings) else {
       return MXLightkeeperSettings()
     }
 
-    return (try? JSONDecoder().decode(MXLightkeeperSettings.self, from: data)) ?? MXLightkeeperSettings()
+    do {
+      return try JSONDecoder().decode(MXLightkeeperSettings.self, from: data)
+    } catch {
+      Logger(subsystem: "MXLightkeeper", category: "AppModel")
+        .error("Stored settings were invalid; keeping backlight control disabled")
+      return MXLightkeeperSettings(isEnabled: false)
+    }
   }
 }

@@ -457,7 +457,9 @@ struct MenuBarContentView: View {
           HStack(spacing: 14) {
             Button("Refresh") { model.refreshReceivers() }
             Button("Pulse") { model.sendProofPulse() }
+              .disabled(!model.canRunDebugAction)
             Button("Demo") { model.sendVisibleDemo() }
+              .disabled(!model.canRunDebugAction)
             Button("Probe") { model.sendOnOnlyProbe() }
               .disabled(!model.canRunDebugAction)
           }
@@ -507,16 +509,26 @@ struct MenuBarContentView: View {
   @MainActor
   private func updateDisplayedStatus(for newStatus: AppStatus) async {
     guard displayedStatus != newStatus else {
+      isShowingStatusText = true
       return
     }
 
     guard !reduceMotion else {
       displayedStatus = newStatus
+      isShowingStatusText = true
       return
     }
 
     isShowingStatusText = false
-    try? await Task.sleep(for: .milliseconds(150))
+    do {
+      try await Task.sleep(for: .milliseconds(150))
+    } catch {
+      return
+    }
+
+    guard !Task.isCancelled else {
+      return
+    }
     displayedStatus = newStatus
     isShowingStatusText = true
   }

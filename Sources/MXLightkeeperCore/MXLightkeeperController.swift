@@ -40,13 +40,34 @@ public struct MXLightkeeperRuntimeState: Sendable {
 @MainActor
 public struct MXLightkeeperController: Sendable {
   private let probeTimeoutSeconds: TimeInterval
+  private let receiverEnumerator: any ReceiverEnumerating
+  private let receiverWriter: any ReceiverWriting
+  private let pulseDelay: @MainActor @Sendable () -> Void
 
   public init(probeTimeoutSeconds: TimeInterval = 1.0) {
+    let receiverService = HIDReceiverService()
     self.probeTimeoutSeconds = probeTimeoutSeconds
+    receiverEnumerator = receiverService
+    receiverWriter = receiverService
+    pulseDelay = {
+      Thread.sleep(forTimeInterval: TimeInterval(KeepAliveProtocol.pulseDelayMilliseconds) / 1_000)
+    }
+  }
+
+  init(
+    probeTimeoutSeconds: TimeInterval = 1.0,
+    receiverEnumerator: any ReceiverEnumerating,
+    receiverWriter: any ReceiverWriting,
+    pulseDelay: @escaping @MainActor @Sendable () -> Void
+  ) {
+    self.probeTimeoutSeconds = probeTimeoutSeconds
+    self.receiverEnumerator = receiverEnumerator
+    self.receiverWriter = receiverWriter
+    self.pulseDelay = pulseDelay
   }
 
   public func listReceivers() throws -> [HIDReceiverMatch] {
-    try HIDReceiverService().listReceivers()
+    try receiverEnumerator.listReceivers()
   }
 
   public func firstMatchedReceiver() throws -> HIDReceiverMatch {
@@ -55,7 +76,8 @@ public struct MXLightkeeperController: Sendable {
 
   public func makeKeeper(
     matching snapshot: ReceiverSnapshot? = nil,
-    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds)
+    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds),
+    onRefresh: @escaping BacklightKeeper.RefreshResultHandler = { _ in }
   ) throws -> BacklightKeeper {
     let target = try resolveTarget(matching: snapshot)
     return BacklightKeeper(
@@ -63,13 +85,15 @@ public struct MXLightkeeperController: Sendable {
       refreshIntervalSeconds: refreshIntervalSeconds,
       refreshOperation: { snapshot in
         try self.refreshKeepAlive(matching: snapshot)
-      }
+      },
+      resultHandler: onRefresh
     )
   }
 
   public func prepareRuntimeState(
     matching snapshot: ReceiverSnapshot? = nil,
-    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds)
+    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds),
+    onRefresh: @escaping BacklightKeeper.RefreshResultHandler = { _ in }
   ) throws -> MXLightkeeperRuntimeState {
     let target = try resolveTarget(matching: snapshot)
     let keeper = BacklightKeeper(
@@ -77,7 +101,8 @@ public struct MXLightkeeperController: Sendable {
       refreshIntervalSeconds: refreshIntervalSeconds,
       refreshOperation: { keeperSnapshot in
         try self.refreshKeepAlive(matching: keeperSnapshot)
-      }
+      },
+      resultHandler: onRefresh
     )
 
     return MXLightkeeperRuntimeState(receiver: target.match, keeper: keeper)
@@ -147,16 +172,32 @@ public struct MXLightkeeperController: Sendable {
   }
 
   public func sendRawOutputReport(_ payload: Data, to snapshot: ReceiverSnapshot) throws {
-    try HIDReceiverService().sendOutputReport(payload, to: snapshot)
+    try receiverWriter.sendOutputReport(payload, to: snapshot)
   }
 
   public func refreshKeepAlive(matching snapshot: ReceiverSnapshot) throws {
     // The visible keep-awake behavior still comes from the legacy Backlighter
     // pulse pair on the reference hardware: send "off", wait briefly, then
     // send "on". A single onSignal is not sufficient to wake the LEDs back up.
-    try sendRawOutputReport(KeepAliveProtocol.offSignal, to: snapshot)
-    Thread.sleep(forTimeInterval: TimeInterval(KeepAliveProtocol.pulseDelayMilliseconds) / 1_000)
-    try sendRawOutputReport(KeepAliveProtocol.onSignal, to: snapshot)
+    do {
+      try sendRawOutputReport(KeepAliveProtocol.offSignal, to: snapshot)
+    } catch {
+      throw KeepAliveRefreshError(
+        completedStage: .notStarted,
+        failureDescription: "Failed to send the first keep-alive report: \(error.localizedDescription)"
+      )
+    }
+
+    pulseDelay()
+
+    do {
+      try sendRawOutputReport(KeepAliveProtocol.onSignal, to: snapshot)
+    } catch {
+      throw KeepAliveRefreshError(
+        completedStage: .offReportSent,
+        failureDescription: "Failed to send the second keep-alive report: \(error.localizedDescription)"
+      )
+    }
   }
 
   private func resolveTarget(matching snapshot: ReceiverSnapshot?) throws -> HIDReceiverTarget {

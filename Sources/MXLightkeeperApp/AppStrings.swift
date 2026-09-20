@@ -4,7 +4,6 @@ import SwiftUI
 
 enum AppStrings {
   static let appName = LocalizedStringResource("app.name", defaultValue: "MXLightkeeper", bundle: .module)
-  static let alphaSuffix = LocalizedStringResource("common.alpha_suffix", defaultValue: "(alpha)", bundle: .module)
 
   private static func localized(
     _ key: StaticString,
@@ -34,7 +33,7 @@ enum AppStrings {
   static func menuBarIconAccessibility(_ status: AppStatus) -> String {
     localized(
       "accessibility.menu_bar_icon",
-      defaultValue: "MXLightkeeper, backlight \(status.localizedTitle.lowercased())",
+      defaultValue: "MXLightkeeper, \(status.localizedTitle)",
       comment: "Accessibility label for the menu bar icon"
     )
   }
@@ -71,55 +70,65 @@ enum AppStrings {
     )
   }
 
-  static func receiverLabel(kind: String, isAlpha: Bool) -> String {
-    let alphaText = isAlpha ? String(localized: alphaSuffix) : ""
+  private static func alphaSuffix(locale: Locale? = nil) -> String {
+    localized("common.alpha_suffix", defaultValue: "(alpha)", locale: locale)
+  }
+
+  static func receiverLabel(kind: String, isAlpha: Bool, locale: Locale? = nil) -> String {
+    let alphaText = isAlpha ? alphaSuffix(locale: locale) : ""
 
     return localized(
       "receiver.label",
       defaultValue: "\(kind) receiver \(alphaText)",
+      locale: locale,
       comment: "Receiver label shown in the menu"
     )
     .trimmingCharacters(in: .whitespaces)
   }
 
-  static func keyboardLabel(name: String, isAlpha: Bool) -> String {
+  static func keyboardLabel(name: String, isAlpha: Bool, locale: Locale? = nil) -> String {
     guard isAlpha else { return name }
 
     return localized(
       "keyboard.label.alpha",
-      defaultValue: "\(name) \(String(localized: alphaSuffix))",
+      defaultValue: "\(name) \(alphaSuffix(locale: locale))",
+      locale: locale,
       comment: "Keyboard label for alpha-supported keyboards"
     )
   }
 
-  static func batteryChargingLabel(level: Int) -> String {
+  static func batteryChargingLabel(level: Int, locale: Locale? = nil) -> String {
     localized(
       "battery.label.charging",
       defaultValue: "\(level)% · Charging",
+      locale: locale,
       comment: "Battery label when charging"
     )
   }
 
-  static func batteryPercentLabel(level: Int) -> String {
+  static func batteryPercentLabel(level: Int, locale: Locale? = nil) -> String {
     localized(
       "battery.label.percent",
       defaultValue: "\(level)%",
+      locale: locale,
       comment: "Battery percentage label"
     )
   }
 
-  static func batteryAccessibilityCharging(level: Int) -> String {
+  static func batteryAccessibilityCharging(level: Int, locale: Locale? = nil) -> String {
     localized(
       "battery.accessibility.charging",
       defaultValue: "\(level) percent, charging",
+      locale: locale,
       comment: "Accessibility battery label when charging"
     )
   }
 
-  static func batteryAccessibilityPercent(level: Int) -> String {
+  static func batteryAccessibilityPercent(level: Int, locale: Locale? = nil) -> String {
     localized(
       "battery.accessibility.percent",
       defaultValue: "\(level) percent",
+      locale: locale,
       comment: "Accessibility battery percentage label"
     )
   }
@@ -132,8 +141,10 @@ enum AppStrings {
       return localized("status.subtitle.disabled", defaultValue: "Will let keyboard manage backlight automatically", locale: locale)
     case .waiting:
       return localized("status.subtitle.waiting", defaultValue: "Looking for a compatible receiver", locale: locale)
+    case .starting:
+      return localized("status.subtitle.starting", defaultValue: "Preparing backlight keeper", locale: locale)
     case .degraded:
-      return localized("status.subtitle.degraded", defaultValue: "Cannot find a compatible receiver", locale: locale)
+      return localized("status.subtitle.degraded", defaultValue: "Cannot keep backlight on", locale: locale)
     }
   }
 
@@ -143,6 +154,8 @@ enum AppStrings {
       return localized("status.title.disabled", defaultValue: "Off", locale: locale)
     case .waiting:
       return localized("status.title.waiting", defaultValue: "Waiting", locale: locale)
+    case .starting:
+      return localized("status.title.starting", defaultValue: "Starting", locale: locale)
     case .active:
       return localized("status.title.active", defaultValue: "On", locale: locale)
     case .degraded:

@@ -129,21 +129,26 @@ private final class KeepAliveOwnership {
 @MainActor
 public final class BacklightKeeper {
   public typealias RefreshOperation = @MainActor @Sendable (ReceiverSnapshot) throws -> Void
+  public typealias RefreshResultHandler = @MainActor @Sendable (KeepAliveRefreshResult) -> Void
 
   public let receiverSnapshot: ReceiverSnapshot
 
   private let refreshIntervalNanoseconds: UInt64
   private let refreshOperation: RefreshOperation
+  private let resultHandler: RefreshResultHandler
+  private let now: @MainActor @Sendable () -> Date
   private let lockURL: URL?
   private var keepAliveTask: Task<Void, Never>?
   private var ownership: KeepAliveOwnership?
   private var isClosed = false
 
   public private(set) var isRunning = false
+  public private(set) var lastRefreshResult: KeepAliveRefreshResult?
 
   public init(
     target: HIDReceiverTarget,
-    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds)
+    refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds),
+    resultHandler: @escaping RefreshResultHandler = { _ in }
   ) {
     receiverSnapshot = target.match.snapshot
     refreshIntervalNanoseconds = UInt64(refreshIntervalSeconds * 1_000_000_000)
@@ -151,6 +156,8 @@ public final class BacklightKeeper {
       let controller = MXLightkeeperController()
       try controller.refreshKeepAlive(matching: snapshot)
     }
+    self.resultHandler = resultHandler
+    now = Date.init
     lockURL = nil
   }
 
@@ -158,12 +165,16 @@ public final class BacklightKeeper {
     snapshot: ReceiverSnapshot,
     refreshIntervalSeconds: TimeInterval = TimeInterval(KeepAliveProtocol.keepAliveIntervalSeconds),
     lockURL: URL? = nil,
-    refreshOperation: @escaping RefreshOperation = { _ in }
+    refreshOperation: @escaping RefreshOperation = { _ in },
+    resultHandler: @escaping RefreshResultHandler = { _ in },
+    now: @escaping @MainActor @Sendable () -> Date = Date.init
   ) {
     receiverSnapshot = snapshot
     refreshIntervalNanoseconds = UInt64(refreshIntervalSeconds * 1_000_000_000)
     self.lockURL = lockURL
     self.refreshOperation = refreshOperation
+    self.resultHandler = resultHandler
+    self.now = now
   }
 
   public func close() {
@@ -189,9 +200,14 @@ public final class BacklightKeeper {
     self.ownership = ownership
 
     keepAliveTask?.cancel()
-    keepAliveTask = Task { [receiverSnapshot, refreshIntervalNanoseconds, refreshOperation] in
+    isRunning = true
+    keepAliveTask = Task { [weak self, refreshIntervalNanoseconds] in
       while !Task.isCancelled {
-        try? refreshOperation(receiverSnapshot)
+        guard self != nil else {
+          break
+        }
+
+        self?.performRefresh()
 
         do {
           try await Task.sleep(nanoseconds: refreshIntervalNanoseconds)
@@ -200,8 +216,39 @@ public final class BacklightKeeper {
         }
       }
     }
+  }
 
-    isRunning = true
+  @discardableResult
+  func performRefresh() -> KeepAliveRefreshResult {
+    let attemptedAt = now()
+    let result: KeepAliveRefreshResult
+
+    do {
+      try refreshOperation(receiverSnapshot)
+      result = KeepAliveRefreshResult(
+        receiver: receiverSnapshot,
+        attemptedAt: attemptedAt,
+        completedStage: .complete
+      )
+    } catch let error as KeepAliveRefreshError {
+      result = KeepAliveRefreshResult(
+        receiver: receiverSnapshot,
+        attemptedAt: attemptedAt,
+        completedStage: error.completedStage,
+        failureDescription: error.failureDescription
+      )
+    } catch {
+      result = KeepAliveRefreshResult(
+        receiver: receiverSnapshot,
+        attemptedAt: attemptedAt,
+        completedStage: .notStarted,
+        failureDescription: error.localizedDescription
+      )
+    }
+
+    lastRefreshResult = result
+    resultHandler(result)
+    return result
   }
 
   public func stop() {
