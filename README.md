@@ -59,7 +59,7 @@ In parallel, every 60 seconds the app polls `DEVICE_NAME (0x0005)` and `BATTERY_
 
 The app follows the macOS system language and supports English, French, Spanish, German, Brazilian Portuguese, Simplified Chinese, Hindi, and Arabic, including RTL layout. It has no in-app language override.
 
-Current status reflects receiver acquisition and keeper startup, not confirmation that the LEDs are lit; refresh errors are not yet surfaced. See the [system design](docs/system-design.md) for exact behavior and limitations, and the [protocol notes](docs/reverse-engineering.md) for hardware observations.
+The app reports **On** only after both keep-alive reports return transport success. A failed or partial pulse reports a degraded state, but transport success still does not confirm that the LEDs are physically lit. See the [system design](docs/system-design.md) for exact behavior and limitations, and the [protocol notes](docs/reverse-engineering.md) for hardware observations.
 
 ## Layout
 

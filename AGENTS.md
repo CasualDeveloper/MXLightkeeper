@@ -14,7 +14,7 @@ MXLightkeeper is a local macOS menu bar app and CLI over one HID core. Start wit
 
 - Both frontends use `MXLightkeeperCore`. Keep HID bytes and ownership out of the UI and CLI parser.
 - Preserve the current legacy pulse keep-alive until replacement behavior is demonstrated on hardware. Structured `BACKLIGHT2` setters and the keep-alive loop are different paths.
-- Distinguish enabled intent, a running task, a successful write, and visible light. Current `.active` proves neither write success nor physical illumination.
+- Distinguish enabled intent, a running task, accepted report transmission, and visible light. Current `.active` proves both pulse reports returned transport success, not physical illumination.
 - Match the specific vendor HID interface. Keep unverified devices labeled alpha; compiling or decoding a fixture does not validate hardware support.
 - Preserve system-language-only behavior, whole-string localization, manual RTL row ordering, and the native `MenuBarExtra` window surface. The accepted UI constraints live in the system design.
 

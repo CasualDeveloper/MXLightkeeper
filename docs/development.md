@@ -39,7 +39,7 @@ They run on `macos-15` with Xcode 16.4 and on `macos-latest` with its selected X
 swift test --filter rtlLayoutFollowsSystemLanguage
 ```
 
-Existing tests cover reducer cases, receiver matching, retry-delay calculation, structured codec payloads, keeper exclusion/release, early manual-level validation, and language resolution. There is currently no simulated controller transaction suite, app-model lifecycle suite, CLI contract suite, or automated visual test. The codec keep-alive tests exercise an unused helper, not the runtime pulse sequence.
+Existing tests cover reducer cases, settings recovery/round-trip, receiver matching, retry-delay calculation, structured codec payloads, pulse ordering and partial failures, keeper result projection/exclusion/release, strict CLI parsing, catalog placeholders, and language resolution. There is currently no full app-model lifecycle suite, CLI output/subprocess suite, process-level ownership suite, or automated visual test. The codec keep-alive tests exercise an unused structured helper; `KeepAliveRefreshTests` exercise the runtime pulse orchestration.
 
 Read assertions as well as test names: the matcher test does not independently vary vendor/page/usage, keeper tests do not await refresh results, and app tests do not call `AppStrings` formatting functions. See the system design's [presentation limits](system-design.md#presentation-limits) for the concrete catalog and transition cases needing coverage.
 
@@ -49,7 +49,7 @@ Read assertions as well as test names: the matcher test does not independently v
 swift run mxlightkeeper --help
 ```
 
-Help exits before constructing the controller. Current CLI output is human-readable; there is no `--json`, `diagnose`, receiver-selection flag, or duration limit. Do not pass proposed flags to the shipping CLI: its parser does not consistently reject extra arguments.
+Help and invalid invocations exit before constructing the controller. Current CLI output is human-readable; there is no `--json`, `diagnose`, receiver-selection flag, duration limit, or timeout flag. The strict parser rejects these proposed options until they are implemented.
 
 ### Bundle and UI changes
 
@@ -62,7 +62,7 @@ lipo -archs dist/MXLightkeeper.app/Contents/MacOS/MXLightkeeperApp
 plutil -lint dist/MXLightkeeper.app/Contents/Info.plist
 ```
 
-Expect `arm64` and `x86_64`. Inspect `dist/MXLightkeeper.app/Contents/Resources/MXLightkeeper_MXLightkeeperApp.bundle` for the compiled localizations. The current script can succeed when the resource bundle is absent; signing alone does not verify localization contents.
+Expect `arm64` and `x86_64`. The script fails when the compiled resource bundle is absent. Inspect `dist/MXLightkeeper.app/Contents/Resources/MXLightkeeper_MXLightkeeperApp.bundle` for all supported localizations; signing alone does not verify their contents.
 
 Launching the packaged app loads persisted intent and can start keep-alive immediately. With an appropriate hardware/UI test session, check:
 
@@ -79,7 +79,7 @@ Check relative links, referenced symbols, command spelling against source/help, 
 
 ## Diagnose the current system
 
-**“On” but no visible light:** confirm enabled intent separately from light. Enumeration alone can set `.active`, and the keeper discards refresh errors. Review the reducer and `refreshKeepAlive`, check the exact receiver, and gather hardware observations; `.active` cannot settle this question.
+**“On” but no visible light:** `.active` means both pulse writes returned transport success, not that the keyboard acknowledged a protocol state or that the LEDs are lit. Check `lastRefreshResult`, the exact receiver, and scoped hardware observations; app status cannot settle physical illumination.
 
 **No receiver or unexpected receiver:** matching requires vendor ID, product ID, usage page, and usage. Current selection prefers Unifying over experimental Bolt and then lower location ID. A second receiver or a keyboard paired outside slot 1 needs explicit investigation. There is no shipping CLI selector.
 

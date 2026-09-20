@@ -110,7 +110,7 @@ Both frontends call `MXLightkeeperCore`. The shipping keeper uses the legacy pul
 
 An earlier observation recorded structured enabled writes visibly changing the reference keyboard's light. Commit `9bb0855` later restored raw pulses because structured writes did not visibly wake LEDs. Its verification note records build/test/bundle checks and leaves live hardware validation outstanding. The initial light/power conditions are not sufficiently recorded to resolve these observations. Preserve shipping behavior until a scoped hardware comparison establishes a replacement.
 
-The intended ownership contract permits one long-running keeper per user. `BacklightKeeper` implements it with a lock file under Application Support. The current creation/stale-cleanup protocol has a concurrent-start race, described in the [system design](system-design.md#what-current-feedback-proves). This guard does not cover one-shot commands or debug pulses, and the keeper currently discards refresh errors.
+The intended ownership contract permits one long-running keeper per user. `BacklightKeeper` implements it with a lock file under Application Support. The current creation/stale-cleanup protocol has a concurrent-start race, described in the [system design](system-design.md#what-current-feedback-proves). This guard does not cover one-shot commands or debug pulses. The keeper reports complete and partial transport results, but those do not establish visible light.
 
 A historical replay of the legacy raw pulse (`10 01 0b 1f 00 00 ff` then `10 01 0b 1f 01 00 ff`) did not visibly change the light while it was already on. This observation does not answer whether the sequence wakes timed-out LEDs or maintains light across multiple refresh intervals.
 
