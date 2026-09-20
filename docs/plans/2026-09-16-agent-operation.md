@@ -16,6 +16,7 @@ The accepted native panel, language/RTL behavior, macOS 15 floor, and alpha boun
 
 - `MXLightkeeperController.refreshKeepAlive` uses raw pulses. Commit `9bb0855` deliberately restored them; tests of `Backlight2Codec.keepAliveRequest` cover a different path.
 - The keeper now records complete and partial pulse results, and `.active` requires both reports to return transport success. App-model lifecycle and rendered-state integration still need broader fixture coverage.
+- Structured requests now decode and throw matched HID++ errors, rotate a conservative nonzero software-ID pool, and validate requested setter readback semantics. Synthetic fixtures do not replace captured hardware evidence.
 - Target selection is implicit; `Backlight2Codec` fixes the feature index to `0x0b`. Only device-name and battery features use root discovery.
 - The ownership guard covers keepers but not one-shot mutations. Creation followed by PID writing races with empty-file cleanup, allowing concurrent owners. Keeper teardown also needs explicit lifetime coverage.
 - CLI output is text-only. Its strict parser now rejects unknown or surplus arguments before constructing the controller; proposed machine-control flags remain unavailable.
@@ -28,11 +29,10 @@ Implement in the order below, in independently verified increments. Keep the app
 
 **Owners:** `Sources/mxlightkeeper/main.swift`; `BacklightKeeper.swift`, `MXLightkeeperController.swift`, `HIDPPProbeSession.swift`, `BacklightStatus.swift`, and `AppState.swift` in core; `AppModel.swift`, `AppStrings.swift`, `MenuBarContentView.swift`, and `Resources/Localizable.xcstrings` in the app; corresponding tests.
 
-1. Correlate HID++ errors to the request and propagate them as failures. Validate setter readback against the requested enabled/mode/level semantics, not unrelated fields. Add fixtures for unrelated and late replies as well as explicit errors.
-2. Preserve refresh failure causes through successful metadata polling and keep sample freshness/target association explicit. Keep login-service errors separate from keeper health.
-3. Reconcile launch-at-login presentation with service status through a narrow app adapter without automatically undoing a user's external disablement.
-4. Remove unreferenced catalog fragments only after checking their consumers. Preserve whole-string localization and the accepted layout.
-5. Verify rapid subtitle transitions under Reduce Motion changes and view dismissal. Verify global-language selection against conflicting app preferences in the packaged app. Shared production/debug transaction ownership follows in slice 2.
+1. Preserve refresh failure causes through successful metadata polling and keep sample freshness/target association explicit. Keep login-service errors separate from keeper health.
+2. Reconcile launch-at-login presentation with service status through a narrow app adapter without automatically undoing a user's external disablement.
+3. Remove unreferenced catalog fragments only after checking their consumers. Preserve whole-string localization and the accepted layout.
+4. Verify rapid subtitle transitions under Reduce Motion changes and view dismissal. Verify global-language selection against conflicting app preferences in the packaged app. Shared production/debug transaction ownership follows in slice 2.
 
 **Acceptance:** preserve regressions for invalid CLI input, complete/partial pulse results, and active-only-after-success reducer behavior. Add recovery, metadata success after write failure, protocol rejection, and mismatched readback coverage. Advance virtual time for cadence checks. App-model fixtures use isolated defaults and injected platform effects so initialization cannot probe hardware or register login items.
 

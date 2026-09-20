@@ -43,6 +43,8 @@ The keep-alive guard normally refuses to start `mxlightkeeper keep` when the app
 
 The guard currently covers keep-alive loops only. Stop the keeper before one-shot writes such as `off` or `manual`. Turning off the app's **Keep backlight on** toggle stops refreshes; it does not send `mxlightkeeper off`.
 
+Structured commands correlate normal and HID++ error replies to the transmitted request. `on` and `off` require matching enabled-state readback; `manual` requires enabled manual mode at the requested level. Confirmed readback still does not prove visible illumination.
+
 ## Requirements
 
 - macOS 15+

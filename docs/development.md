@@ -39,7 +39,7 @@ They run on `macos-15` with Xcode 16.4 and on `macos-latest` with its selected X
 swift test --filter rtlLayoutFollowsSystemLanguage
 ```
 
-Existing tests cover reducer cases, settings recovery/round-trip, receiver matching, retry-delay calculation, structured codec payloads, pulse ordering and partial failures, keeper result projection/exclusion/release, strict CLI parsing, catalog placeholders, and language resolution. There is currently no full app-model lifecycle suite, CLI output/subprocess suite, process-level ownership suite, or automated visual test. The codec keep-alive tests exercise an unused structured helper; `KeepAliveRefreshTests` exercise the runtime pulse orchestration.
+Existing tests cover reducer cases, settings recovery/round-trip, receiver matching, retry-delay calculation, structured codec payloads, HID++ normal/error correlation, software-ID allocation, setter expectations, pulse ordering and partial failures, keeper result projection/exclusion/release, strict CLI parsing, catalog placeholders, and language resolution. There is currently no full app-model lifecycle suite, CLI output/subprocess suite, process-level ownership suite, IOKit response-capture integration suite, or automated visual test. The codec keep-alive tests exercise an unused structured helper; `KeepAliveRefreshTests` exercise the runtime pulse orchestration.
 
 Read assertions as well as test names: the matcher test does not independently vary vendor/page/usage, keeper tests do not await refresh results, and app tests do not call `AppStrings` formatting functions. See the system design's [presentation limits](system-design.md#presentation-limits) for the concrete catalog and transition cases needing coverage.
 

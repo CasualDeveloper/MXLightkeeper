@@ -106,7 +106,7 @@ Only "MX Keys for Mac" has been end-to-end verified on real hardware. Other keyb
 
 ## What the shipping app and CLI use
 
-Both frontends call `MXLightkeeperCore`. The shipping keeper uses the legacy pulse pair, with a 50 ms gap, immediately and then every 180 seconds. The CLI's `read`, `on`, `off`, and `manual` commands use structured `BACKLIGHT2` operations. Current code fixes their feature index to `0x0b` and slot to `0x01`; the historical discovery map is not a dynamic capability guarantee.
+Both frontends call `MXLightkeeperCore`. The shipping keeper uses the legacy pulse pair, with a 50 ms gap, immediately and then every 180 seconds. The CLI's `read`, `on`, `off`, and `manual` commands use structured `BACKLIGHT2` operations. Structured requests rotate nonzero software IDs and correlate normal or `0xFF` error replies using the echoed request bytes. Current code fixes the feature index to `0x0b` and slot to `0x01`; the historical discovery map is not a dynamic capability guarantee.
 
 An earlier observation recorded structured enabled writes visibly changing the reference keyboard's light. Commit `9bb0855` later restored raw pulses because structured writes did not visibly wake LEDs. Its verification note records build/test/bundle checks and leaves live hardware validation outstanding. The initial light/power conditions are not sufficiently recorded to resolve these observations. Preserve shipping behavior until a scoped hardware comparison establishes a replacement.
 
