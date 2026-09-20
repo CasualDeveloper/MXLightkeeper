@@ -45,5 +45,9 @@ let package = Package(
       name: "MXLightkeeperAppTests",
       dependencies: ["MXLightkeeperApp"]
     ),
+    .testTarget(
+      name: "MXLightkeeperCLITests",
+      dependencies: ["mxlightkeeper"]
+    ),
   ]
 )
