@@ -19,16 +19,18 @@ EXECUTABLE_SOURCE="$BIN_DIR/$PRODUCT_NAME"
 RESOURCE_BUNDLE_NAME="MXLightkeeper_MXLightkeeperApp.bundle"
 RESOURCE_BUNDLE_SOURCE="$ROOT_DIR/.build/apple/Products/Release/$RESOURCE_BUNDLE_NAME"
 
+if [[ ! -d "$RESOURCE_BUNDLE_SOURCE" ]]; then
+  print -u2 "Error: Missing compiled resource bundle: $RESOURCE_BUNDLE_SOURCE"
+  exit 1
+fi
+
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
 cp "$EXECUTABLE_SOURCE" "$MACOS_DIR/$PRODUCT_NAME"
 cp "$PLIST_SOURCE" "$CONTENTS_DIR/Info.plist"
 cp "$ICNS_SOURCE" "$RESOURCES_DIR/AppIcon.icns"
-
-if [[ -d "$RESOURCE_BUNDLE_SOURCE" ]]; then
-  cp -R "$RESOURCE_BUNDLE_SOURCE" "$RESOURCES_DIR/$RESOURCE_BUNDLE_NAME"
-fi
+cp -R "$RESOURCE_BUNDLE_SOURCE" "$RESOURCES_DIR/$RESOURCE_BUNDLE_NAME"
 
 codesign --force --deep --sign - "$APP_DIR"
 
